@@ -8,7 +8,7 @@ import {
 
 // --- CONFIGURATION ---
 // REPLACE THIS with your Render Backend URL when deploying!
-const API_URL = "http://https://iti123-project.onrender.com"; 
+const API_URL = "https://iti123-project.onrender.com"; 
 // Example: const API_URL = "https://p2p-backend.onrender.com";
 
 export default function App() {
