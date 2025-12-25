@@ -7,6 +7,24 @@ body {
   color: #0f172a;
 }
 
+/* FORCE SIDEBAR LAYOUT */
+aside {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 20rem; /* 80 in tailwind */
+  background-color: #0f172a; /* Slate 900 */
+  color: white;
+  overflow-y: auto;
+}
+
+main {
+  margin-left: 20rem; /* Push content to the right */
+  width: calc(100% - 20rem);
+  background-color: #f8fafc;
+}
+
 /* --- FIX FOR AI FEEDBACK --- */
 /* This restores bullet points and bold text inside the feedback cards */
 .markdown-content ul {
