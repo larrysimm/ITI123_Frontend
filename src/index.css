@@ -5,14 +5,28 @@
 /* GLOBAL RESET */
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif; /* Clean modern font */
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #f8fafc;
-  color: #0f172a;
-  overflow: hidden; /* Prevents double scrollbars */
+  background-color: #f8fafc; /* Very light gray/blue background */
+  color: #334155; /* Soft Slate Text (Not pure black) */
 }
 
-/* MARKDOWN STYLES (For AI Feedback) */
+/* CUSTOM SCROLLBAR (Soft Gray) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0; 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1; 
+}
+
+/* MARKDOWN STYLES (Clean & Readable) */
 .markdown-content ul {
   list-style-type: disc;
   padding-left: 1.5rem;
@@ -20,25 +34,30 @@ body {
 }
 .markdown-content strong {
   font-weight: 700;
-  color: #0f172a;
+  color: #1e293b; /* Darker Slate for emphasis */
 }
 .markdown-content h1, .markdown-content h2, .markdown-content h3 {
   font-weight: 700;
   margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #0f172a;
+}
+.markdown-content p {
+  line-height: 1.8; /* More breathing room */
+  margin-bottom: 1rem;
 }
 
-/* --- EMERGENCY LAYOUT (Forces Sidebar Visibility) --- */
-/* If Tailwind fails, this standard CSS will take over */
-
+/* --- EMERGENCY LAYOUT (Soft Colors) --- */
+/* This ensures the layout works even without Tailwind */
 aside {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
-  width: 320px; /* Force width */
-  background-color: #0f172a; /* Force Dark Blue */
-  color: #e2e8f0;
+  width: 320px;
+  background-color: #ffffff; /* PURE WHITE SIDEBAR */
+  border-right: 1px solid #f1f5f9; /* Subtle border */
+  color: #64748b; /* Soft Gray Text */
   z-index: 50;
   overflow-y: auto;
   display: flex;
@@ -46,7 +65,7 @@ aside {
 }
 
 main {
-  margin-left: 320px; /* Push content right */
+  margin-left: 320px;
   width: calc(100% - 320px);
   height: 100vh;
   overflow-y: auto;

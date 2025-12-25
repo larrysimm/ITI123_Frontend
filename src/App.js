@@ -3,8 +3,8 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Upload, Briefcase, 
-  CheckCircle, AlertCircle, RefreshCw, FileText, Zap, Star
+  Upload, Briefcase, ChevronRight, 
+  CheckCircle, AlertCircle, RefreshCw, FileText, Zap, Star, Layout
 } from 'lucide-react';
 
 // --- CONFIGURATION ---
@@ -26,11 +26,9 @@ export default function App() {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-
     try {
       const res = await axios.post(`${API_URL}/upload_resume`, formData);
       setResumeText(res.data.extracted_text);
@@ -47,7 +45,6 @@ export default function App() {
     if (!answer.trim()) return alert("Please type an answer first.");
     setLoading(true);
     setResult(null); 
-
     try {
       const payload = {
         student_answer: answer,
@@ -66,48 +63,56 @@ export default function App() {
   };
 
   return (
-    // The layout is handled by index.css 'aside' and 'main' rules
-    <div className="flex min-h-screen">
+    // The layout structure is handled by index.css to be safe
+    <div className="flex min-h-screen bg-slate-50 text-slate-600">
       
-      {/* --- SIDEBAR --- */}
-      <aside>
+      {/* --- SIDEBAR (Soft White) --- */}
+      <aside className="bg-white border-r border-slate-100 shadow-sm flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-slate-700 bg-slate-900">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-blue-400" />
+        <div className="p-8 pb-4">
+          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-3 tracking-tight">
+            <div className="bg-indigo-50 p-2 rounded-xl">
+              <Layout className="w-5 h-5 text-indigo-600" />
+            </div>
             Poly-to-Pro
           </h1>
-          <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">
+          <p className="text-[11px] text-slate-400 mt-2 font-medium uppercase tracking-widest pl-1">
             v2.1 Validator
           </p>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-8">
+        <div className="p-8 space-y-10 flex-1">
           
           {/* Role Select */}
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
-              1. Target Role
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+              Target Role
             </label>
-            <select 
-              value={targetRole}
-              onChange={(e) => setTargetRole(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option>Software Engineer</option>
-              <option>Data Analyst</option>
-              <option>Audit Associate</option>
-              <option>Digital Marketer</option>
-              <option>HR Executive</option>
-            </select>
+            <div className="relative">
+              <select 
+                value={targetRole}
+                onChange={(e) => setTargetRole(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm text-slate-700 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 outline-none transition-all appearance-none cursor-pointer hover:bg-white"
+              >
+                <option>Software Engineer</option>
+                <option>Data Analyst</option>
+                <option>Audit Associate</option>
+                <option>Digital Marketer</option>
+                <option>HR Executive</option>
+              </select>
+              <ChevronRight className="absolute right-3 top-3.5 w-4 h-4 text-slate-400 rotate-90 pointer-events-none" />
+            </div>
           </div>
 
           {/* Upload */}
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
-              2. Upload Context
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+              Upload Context
             </label>
+            
             <div className="relative group cursor-pointer">
               <input 
                 type="file" 
@@ -116,118 +121,167 @@ export default function App() {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
               <div className={`
-                border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-all
-                ${resumeName ? 'border-emerald-500/50 bg-emerald-900/20' : 'border-slate-600 bg-slate-800 hover:border-blue-500'}
+                border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center transition-all duration-300
+                ${resumeName 
+                  ? 'border-emerald-200 bg-emerald-50/50' 
+                  : 'border-slate-200 bg-slate-50 hover:border-indigo-300 hover:bg-white'
+                }
               `}>
                 {uploading ? (
-                  <RefreshCw className="w-6 h-6 text-blue-400 animate-spin mb-2" />
+                  <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin mb-3" />
                 ) : resumeName ? (
-                  <CheckCircle className="w-6 h-6 text-emerald-400 mb-2" />
+                  <div className="bg-emerald-100 p-2 rounded-full mb-3">
+                     <CheckCircle className="w-6 h-6 text-emerald-600" />
+                  </div>
                 ) : (
-                  <Upload className="w-6 h-6 text-slate-400 mb-2" />
+                  <div className="bg-slate-100 p-2 rounded-full mb-3 group-hover:bg-indigo-50 transition-colors">
+                    <Upload className="w-6 h-6 text-slate-400 group-hover:text-indigo-500" />
+                  </div>
                 )}
-                <span className="text-xs font-medium text-slate-300">
-                  {uploading ? "Parsing..." : resumeName ? "Resume Active" : "Click to Upload PDF"}
+                
+                <span className="text-sm font-semibold text-slate-600">
+                  {uploading ? "Analyzing..." : resumeName ? "Resume Active" : "Upload Resume"}
                 </span>
+                {!resumeName && <span className="text-xs text-slate-400 mt-1">PDF format (Max 5MB)</span>}
               </div>
             </div>
-            {resumeName && (
-              <div className="mt-2 text-xs text-emerald-400 flex items-center gap-1">
-                <FileText className="w-3 h-3" /> {resumeName}
-              </div>
-            )}
+
+            {/* Active File Badge */}
+            <AnimatePresence>
+              {resumeName && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="bg-white border border-slate-100 shadow-sm rounded-xl p-3 flex items-center gap-3"
+                >
+                  <div className="bg-emerald-50 p-2 rounded-lg">
+                    <FileText className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-700 truncate">{resumeName}</p>
+                    <p className="text-[10px] text-emerald-500 font-medium">Ready for Context</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-auto p-4 border-t border-slate-800 bg-slate-900">
-          <div className="text-[10px] text-center text-slate-500">
-            Powered by Gemini 1.5 Flash
+        <div className="p-6 border-t border-slate-50 bg-slate-50/50">
+          <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-wider">
+            <Zap className="w-3 h-3 text-amber-400 fill-current" />
+            Powered by Gemini AI
           </div>
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT --- */}
-      <main>
-        <div className="max-w-4xl mx-auto p-8 md:p-12 pb-32">
+
+      {/* --- MAIN CONTENT (Soft Light Gray) --- */}
+      <main className="flex-1 relative">
+        <div className="max-w-4xl mx-auto p-10 md:p-14 pb-40">
           
-          <header className="mb-10">
-            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-4">
-              <Zap className="w-3 h-3" /> Interview Simulator
+          <header className="mb-12">
+            <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-5 border border-indigo-100">
+              Interview Simulator
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-900">
-              Prepare for <span className="text-blue-600">{targetRole}</span>
+            <h2 className="text-4xl font-extrabold text-slate-800 tracking-tight leading-tight">
+              Prepare for <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-blue-600">{targetRole}</span>
             </h2>
+            <p className="text-slate-500 mt-4 text-lg font-light leading-relaxed max-w-2xl">
+              Draft your response using the STAR method. Our dual-agent system will validate your answer against official SkillsFuture frameworks.
+            </p>
           </header>
 
-          {/* Question */}
-          <section className="mb-8">
-            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+          {/* Question Card */}
+          <section className="mb-8 group">
+            <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 group-hover:border-indigo-200 group-hover:shadow-md transition-all">
               <select 
-                className="w-full p-3 text-lg bg-transparent outline-none"
+                className="w-full p-4 text-lg bg-transparent text-slate-700 font-medium focus:outline-none cursor-pointer rounded-xl"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
               >
                 <option>Tell me about a time you had to manage a difficult client situation.</option>
                 <option>Describe a project where you had to analyze complex data.</option>
                 <option>Tell me about a time you failed to meet a deadline.</option>
-                <option value="custom">-- Custom Question --</option>
+                <option value="custom">-- Type Your Own Question --</option>
               </select>
             </div>
             {question === "custom" && (
               <input 
                 type="text" 
                 placeholder="Type your question..."
-                className="w-full mt-3 p-3 border border-slate-200 rounded-lg"
+                className="w-full mt-3 p-4 bg-white border border-slate-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-100 outline-none"
               />
             )}
           </section>
 
-          {/* Answer */}
-          <section className="mb-10 relative">
-            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Your Answer (STAR Method)</label>
+          {/* Answer Area */}
+          <section className="mb-12 relative">
+            <div className="absolute -top-3 left-6 bg-white px-3 text-xs font-bold text-slate-400 uppercase tracking-wider z-10">
+              Your Answer
+            </div>
             <textarea 
-              className="w-full h-64 p-5 text-lg border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none shadow-sm"
-              placeholder="Situation: ... Task: ... Action: ... Result: ..."
+              className="w-full h-64 p-8 text-lg border border-slate-200 rounded-3xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 outline-none text-slate-700 leading-relaxed shadow-sm bg-white resize-none transition-all placeholder:text-slate-300"
+              placeholder="Situation: I was working on... Task: My goal was to... Action: I specifically... Result: The outcome was..."
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
             ></textarea>
             
-            <button 
-              onClick={handleAnalyze}
-              disabled={loading}
-              className={`absolute bottom-6 right-6 px-6 py-2 rounded-lg font-bold text-white transition-all ${loading ? 'bg-slate-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-            >
-              {loading ? "Analyzing..." : "Validate Answer"}
-            </button>
+            <div className="absolute bottom-6 right-6">
+              <button 
+                onClick={handleAnalyze}
+                disabled={loading}
+                className={`
+                  flex items-center gap-2 px-8 py-3.5 rounded-2xl font-bold text-white shadow-xl shadow-indigo-200 transform transition-all active:scale-95
+                  ${loading ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-500 to-blue-600 hover:shadow-2xl hover:-translate-y-1'}
+                `}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2"><RefreshCw className="w-5 h-5 animate-spin"/> Processing...</span>
+                ) : (
+                  <>Validate <ChevronRight className="w-5 h-5" /></>
+                )}
+              </button>
+            </div>
           </section>
 
-          {/* Results */}
+          {/* Results (Soft Colors) */}
           <AnimatePresence>
             {result && (
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="space-y-8"
+                className="grid grid-cols-1 gap-10"
               >
-                {/* Manager Feedback */}
-                <div className="bg-white rounded-xl shadow-lg border border-red-100 overflow-hidden">
-                  <div className="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3">
-                    <AlertCircle className="text-red-600 w-5 h-5" />
-                    <h3 className="font-bold text-red-900">Hiring Manager Critique</h3>
+                {/* Manager Card (Soft Red) */}
+                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                  <div className="bg-rose-50/60 p-6 flex items-center gap-5 border-b border-rose-100/50">
+                    <div className="bg-white p-3 rounded-2xl shadow-sm text-rose-500">
+                      <AlertCircle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-lg">Hiring Manager Feedback</h3>
+                      <p className="text-xs text-rose-500 font-bold uppercase tracking-wide mt-0.5">Gap Analysis</p>
+                    </div>
                   </div>
-                  <div className="p-6 text-slate-700 markdown-content">
+                  <div className="p-10 text-slate-600 markdown-content">
                     <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
                   </div>
                 </div>
 
-                {/* Coach Feedback */}
-                <div className="bg-white rounded-xl shadow-lg border border-emerald-100 overflow-hidden">
-                  <div className="bg-emerald-50 p-4 border-b border-emerald-100 flex items-center gap-3">
-                    <Star className="text-emerald-600 w-5 h-5" />
-                    <h3 className="font-bold text-emerald-900">Career Coach Refinement</h3>
+                {/* Coach Card (Soft Teal) */}
+                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                  <div className="bg-teal-50/60 p-6 flex items-center gap-5 border-b border-teal-100/50">
+                    <div className="bg-white p-3 rounded-2xl shadow-sm text-teal-500">
+                      <Star className="w-6 h-6 fill-current" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-lg">Career Coach Refinement</h3>
+                      <p className="text-xs text-teal-500 font-bold uppercase tracking-wide mt-0.5">Model STAR Answer</p>
+                    </div>
                   </div>
-                  <div className="p-6 text-slate-700 markdown-content">
+                  <div className="p-10 text-slate-600 markdown-content">
                     <ReactMarkdown>{result.coach_feedback}</ReactMarkdown>
                   </div>
                 </div>
