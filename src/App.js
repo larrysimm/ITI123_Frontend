@@ -3,7 +3,7 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Upload, Briefcase, ChevronRight, 
+  Upload, ChevronRight, 
   CheckCircle, AlertCircle, RefreshCw, FileText, Zap, Star, Layout
 } from 'lucide-react';
 
