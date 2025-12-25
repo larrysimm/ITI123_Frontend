@@ -3,7 +3,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, UserCircle, Briefcase, ChevronRight, 
-  MessageSquare, CheckCircle, AlertCircle, RefreshCw, FileText 
+  CheckCircle, AlertCircle, RefreshCw, FileText 
 } from 'lucide-react';
 
 // --- CONFIGURATION ---
@@ -13,7 +13,7 @@ const API_URL = "https://iti123-project.onrender.com";
 
 export default function App() {
   // --- STATE MANAGEMENT ---
-  const [step, setStep] = useState(1);
+  const [setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   
