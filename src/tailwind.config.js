@@ -3,8 +3,12 @@ module.exports = {
   content: [
     "./src/*.{js,jsx,ts,tsx}", // <--- ENSURE THIS LINE EXISTS
   ],
-  theme: {
-    extend: {},
+theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+      },
+    },
   },
   plugins: [],
 }
