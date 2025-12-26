@@ -45,25 +45,27 @@ export default function App() {
       const elapsed = now - startTimeRef.current;
       setElapsedTime(Math.floor(elapsed / 1000));
 
-      // Timeout Check
+      // 1. Timeout Check
       if (elapsed > MAX_WAIT_TIME_MS) {
         if (isMounted) setServerStatus("timeout");
-        return;
+        return; // Stop looping
       }
 
-      // API Call
+      // 2. API Call
       try {
         const res = await axios.get(`${API_URL}/`, { timeout: 5000 });
-        if (res.data.status === "OK" && isMounted) {
-          setServerStatus("ready");
-          return; // Stop recursion on success
+        if (res.data.status === "OK") {
+          if (isMounted) setServerStatus("ready");
+          return; // Stop looping on success
         }
       } catch (err) {
-        // Continue waiting
+        // Ignore error, continue to retry logic
       }
 
-      // Recursive Retry
-      if (isMounted && serverStatus !== "ready") {
+      // 3. Recursive Retry
+      // We removed the check for 'serverStatus' here to fix the lint warning.
+      // The 'return' above guarantees we only reach here if we haven't succeeded yet.
+      if (isMounted) {
         timeoutId = setTimeout(ping, 2000);
       }
     };
@@ -74,6 +76,7 @@ export default function App() {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
+    // DEPENDENCIES: Only retryTrigger. The effect won't re-run on state changes, which is what we want.
   }, [retryTrigger]);
 
   // Visual Timer Interval
