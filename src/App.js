@@ -245,6 +245,16 @@ export default function App() {
       {/* 3. MAIN CONTENT (Uses custom class for scrolling) */}
       <div className="main-content">
         <div className="container" style={{maxWidth: '900px'}}>
+          {/* --- DEBUG BOX START --- */}
+          <div className="alert alert-info">
+             <small>Debug Status: {serverStatus}</small><br/>
+             <small>Questions in Memory: {questionBank.length}</small>
+             <details>
+               <summary>View Raw Data</summary>
+               <pre>{JSON.stringify(questionBank, null, 2)}</pre>
+             </details>
+          </div>
+          {/* --- DEBUG BOX END --- */}
           
           <h1 className="display-6 fw-bold mb-4 text-dark">Mock Interview</h1>
           
