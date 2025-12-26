@@ -43,10 +43,10 @@ export default function App() {
 
   const handleAnalyzeStream = async () => {
     if (!answer.trim()) return alert("Please type an answer first.");
-
+    
     setLoading(true);
     setResult(null);
-    setCurrentStep(1);
+    setCurrentStep(1); 
 
     try {
       const response = await fetch(`${API_URL}/analyze_stream`, {
@@ -60,50 +60,51 @@ export default function App() {
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`Server Error: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(response.statusText);
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let buffer = ""; // <--- FIX: Store incomplete chunks here
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter(line => line.trim() !== "");
+        // 1. Decode the new chunk and add it to the buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // 2. Process complete lines only
+        const lines = buffer.split("\n");
+        
+        // Keep the last piece in the buffer (it might be incomplete)
+        buffer = lines.pop(); 
 
         for (const line of lines) {
+          if (!line.trim()) continue; // Skip empty lines
           try {
             const json = JSON.parse(line);
-
-            // 1. Handle Progress Steps
+            
+            // --- UPDATE UI ---
             if (json.type === "step") {
-              console.log("Step:", json.step_id);
               setCurrentStep(json.step_id);
-            }
-            // 2. Handle Final Result
+            } 
             else if (json.type === "result") {
               setResult(json.data);
             }
-            // 3. Handle Errors sent from Backend
             else if (json.type === "error") {
+              console.error("Backend Error:", json.message);
               alert("AI Error: " + json.message);
-              setLoading(false); // Stop loading on error
               return;
             }
           } catch (e) {
-            console.error("JSON Parse Error", e);
+            console.error("Error parsing JSON line:", e);
           }
         }
       }
     } catch (err) {
       console.error(err);
-      alert("Connection failed. Check your backend terminal for errors.");
+      alert("Connection failed.");
     } finally {
-      // Only turn off loading if we successfully got a result or fully finished
-      // We don't want to hide the UI if it's still waiting.
       setLoading(false);
     }
   };
