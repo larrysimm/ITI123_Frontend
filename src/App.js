@@ -21,6 +21,8 @@ export default function App() {
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [questionBank, setQuestionBank] = useState([]); // Store the list
+  const [isCustomQuestion, setIsCustomQuestion] = useState(false); // Toggle dropdown vs input
 
   // Server Health State
   const [serverStatus, setServerStatus] = useState("sleeping"); // sleeping, waking, ready, timeout
@@ -89,6 +91,20 @@ export default function App() {
     return () => clearInterval(timer);
   }, [serverStatus]);
 
+  // FETCH QUESTIONS ON LOAD
+  useEffect(() => {
+    if (serverStatus === 'ready') {
+      axios.get(`${API_URL}/questions`)
+        .then(res => {
+          setQuestionBank(res.data);
+          // Auto-select the first question if list is not empty
+          if (res.data.length > 0) {
+            setQuestion(res.data[0].text);
+          }
+        })
+        .catch(err => console.error("Error loading questions:", err));
+    }
+  }, [serverStatus]);
 
   // --- 2. HANDLERS ---
   const handleFileUpload = async (e) => {
@@ -235,16 +251,59 @@ export default function App() {
           <div className="mb-4">
              <div className="card border-0 shadow-sm">
                <div className="card-body p-2">
-                 <select className="form-select border-0 fw-bold text-secondary" style={{fontSize: '1.1rem'}} value={question} onChange={e => setQuestion(e.target.value)}>
-                   <option>Tell me about a time you had to manage a difficult client situation.</option>
-                   <option>Describe a project where you had to analyze complex data.</option>
-                   <option value="custom">-- Custom Question --</option>
-                 </select>
+                 
+                 {/* MODE A: DROPDOWN LIST */}
+                 {!isCustomQuestion ? (
+                   <select 
+                     className="form-select border-0 fw-bold text-secondary" 
+                     style={{fontSize: '1.1rem'}} 
+                     value={question} 
+                     onChange={(e) => {
+                       if (e.target.value === "CUSTOM_MODE") {
+                         setIsCustomQuestion(true);
+                         setQuestion(""); // Clear text for typing
+                       } else {
+                         setQuestion(e.target.value);
+                       }
+                     }}
+                   >
+                     {/* 1. Map questions from JSON/DB */}
+                     {questionBank.map((q, index) => (
+                       <option key={index} value={q.text}>
+                         {q.text}
+                       </option>
+                     ))}
+                     
+                     {/* 2. Divider & Custom Option */}
+                     <option disabled>──────────────────────────</option>
+                     <option value="CUSTOM_MODE">✎ Type a custom question...</option>
+                   </select>
+                 ) : (
+                   
+                   /* MODE B: TEXT INPUT (Back button included) */
+                   <div className="d-flex gap-2">
+                     <button 
+                       className="btn btn-light border text-muted"
+                       onClick={() => {
+                         setIsCustomQuestion(false);
+                         // Reset to first question in bank if exists
+                         if(questionBank.length > 0) setQuestion(questionBank[0].text);
+                       }}
+                       title="Back to list"
+                     >
+                       <i className="bi bi-arrow-left"></i>
+                     </button>
+                     <input 
+                       className="form-control border-0 fw-bold text-secondary" 
+                       placeholder="Type your interview question here..." 
+                       value={question} 
+                       autoFocus
+                       onChange={e => setQuestion(e.target.value)}
+                     />
+                   </div>
+                 )}
                </div>
              </div>
-             {question === "custom" && (
-               <input className="form-control mt-2 p-3" placeholder="Type your custom question..." onChange={e => setQuestion(e.target.value)} />
-             )}
           </div>
 
           <div className="mb-4">
