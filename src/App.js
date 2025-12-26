@@ -43,10 +43,10 @@ export default function App() {
 
   const handleAnalyzeStream = async () => {
     if (!answer.trim()) return alert("Please type an answer first.");
-    
+
     setLoading(true);
     setResult(null);
-    setCurrentStep(1); 
+    setCurrentStep(1);
 
     try {
       const response = await fetch(`${API_URL}/analyze_stream`, {
@@ -75,19 +75,19 @@ export default function App() {
 
         // 2. Process complete lines only
         const lines = buffer.split("\n");
-        
+
         // Keep the last piece in the buffer (it might be incomplete)
-        buffer = lines.pop(); 
+        buffer = lines.pop();
 
         for (const line of lines) {
           if (!line.trim()) continue; // Skip empty lines
           try {
             const json = JSON.parse(line);
-            
+
             // --- UPDATE UI ---
             if (json.type === "step") {
               setCurrentStep(json.step_id);
-            } 
+            }
             else if (json.type === "result") {
               setResult(json.data);
             }
@@ -217,9 +217,16 @@ export default function App() {
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                 >
-                  <option>Tell me about a time you had to manage a difficult client situation.</option>
-                  <option>Describe a project where you had to analyze complex data.</option>
-                  <option>Tell me about a time you failed to meet a deadline.</option>
+        <option>Tell me about a project where you faced a technical problem you couldn’t solve immediately.</option>
+                  <option>Describe a time you had to learn a new technology or tool quickly.</option>
+                  <option>Tell me about a time you worked in a team and there was a disagreement or conflict.</option>
+                  <option>Describe a situation where your initial solution didn’t work. What did you do next?</option>
+                  <option>Tell me about a time you had to manage multiple deadlines or tasks.</option>
+                  <option>Describe a project where you took ownership of a feature or module.</option>
+                  <option>Tell me about a time you received critical feedback. How did you respond?</option>
+                  <option>Describe a situation where something went wrong close to a deadline.</option>
+                  <option>Tell me about a time you helped someone else solve a problem.</option>
+                  <option>Tell me about a project you are most proud of and why.</option>
                   <option value="custom">-- Type Custom Question --</option>
                 </select>
               </div>
