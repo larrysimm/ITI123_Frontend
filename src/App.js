@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
-import './App.css'; 
+import './App.css';
 import ThinkingTrace from './ThinkingTrace';
 
 // !!! CHANGE THIS TO YOUR BACKEND URL !!!
-const API_URL = "https://iti123-project.onrender.com"; 
+const API_URL = "https://iti123-project.onrender.com";
 
 export default function App() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
   // --- STATE VARIABLES ---
   const [resumeName, setResumeName] = useState("");
   const [resumeText, setResumeText] = useState("");
@@ -18,7 +18,7 @@ export default function App() {
   const [question, setQuestion] = useState("Tell me about a time you had to manage a difficult client situation.");
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState(null);
-  
+
   // Streaming State
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -43,10 +43,10 @@ export default function App() {
 
   const handleAnalyzeStream = async () => {
     if (!answer.trim()) return alert("Please type an answer first.");
-    
+
     setLoading(true);
     setResult(null);
-    setCurrentStep(1); // Reset to Step 1
+    setCurrentStep(1);
 
     try {
       const response = await fetch(`${API_URL}/analyze_stream`, {
@@ -56,9 +56,13 @@ export default function App() {
           student_answer: answer,
           question: question,
           target_role: targetRole,
-          resume_text: resumeText
+          resume_text: resumeText || "No resume context."
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`Server Error: ${response.statusText}`);
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -73,27 +77,40 @@ export default function App() {
         for (const line of lines) {
           try {
             const json = JSON.parse(line);
+
+            // 1. Handle Progress Steps
             if (json.type === "step") {
+              console.log("Step:", json.step_id);
               setCurrentStep(json.step_id);
-            } else if (json.type === "result") {
+            }
+            // 2. Handle Final Result
+            else if (json.type === "result") {
               setResult(json.data);
             }
+            // 3. Handle Errors sent from Backend
+            else if (json.type === "error") {
+              alert("AI Error: " + json.message);
+              setLoading(false); // Stop loading on error
+              return;
+            }
           } catch (e) {
-            console.error("Error parsing JSON", e);
+            console.error("JSON Parse Error", e);
           }
         }
       }
     } catch (err) {
       console.error(err);
-      alert("Stream connection failed.");
+      alert("Connection failed. Check your backend terminal for errors.");
     } finally {
+      // Only turn off loading if we successfully got a result or fully finished
+      // We don't want to hide the UI if it's still waiting.
       setLoading(false);
     }
   };
 
   return (
     <div className="dashboard-container">
-      
+
       {/* --- SIDEBAR --- */}
       <div className="sidebar p-4">
         <div className="d-flex align-items-center mb-4 text-primary">
@@ -101,12 +118,12 @@ export default function App() {
           <h5 className="mb-0 fw-bold">Poly-to-Pro</h5>
         </div>
         <hr className="text-secondary opacity-25" />
-        
+
         <div className="flex-grow-1 overflow-auto">
           <div className="mb-4">
-            <label className="form-label text-uppercase fw-bold text-muted" style={{fontSize: '11px'}}>Target Role</label>
+            <label className="form-label text-uppercase fw-bold text-muted" style={{ fontSize: '11px' }}>Target Role</label>
             {/* [FIX] setTargetRole is used here */}
-            <select 
+            <select
               className="form-select shadow-sm"
               value={targetRole}
               onChange={(e) => setTargetRole(e.target.value)}
@@ -120,17 +137,17 @@ export default function App() {
           </div>
 
           <div className="mb-4">
-            <label className="form-label text-uppercase fw-bold text-muted" style={{fontSize: '11px'}}>Resume Context</label>
+            <label className="form-label text-uppercase fw-bold text-muted" style={{ fontSize: '11px' }}>Resume Context</label>
             <div className={`upload-box p-3 text-center position-relative ${resumeName ? 'border-success bg-success-subtle' : ''}`}>
-              <input 
-                type="file" 
-                accept=".pdf" 
-                className="position-absolute top-0 start-0 w-100 h-100 opacity-0" 
-                style={{cursor: 'pointer'}} 
-                onChange={handleFileUpload} 
+              <input
+                type="file"
+                accept=".pdf"
+                className="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                style={{ cursor: 'pointer' }}
+                onChange={handleFileUpload}
               />
               {uploading ? (
-                 <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+                <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
               ) : resumeName ? (
                 <div>
                   <i className="bi bi-check-circle-fill text-success fs-4 mb-1"></i>
@@ -149,36 +166,36 @@ export default function App() {
 
       {/* --- MAIN CONTENT --- */}
       <div className="main-content d-flex flex-column">
-        
+
         {/* 1. WELCOME SCREEN (No Resume) */}
         {!resumeName ? (
           <div className="container h-100 d-flex flex-column justify-content-center align-items-center text-center fade-in">
-             <div className="card card-modern p-5 shadow-lg border-0" style={{maxWidth: '600px'}}>
-                <div className="mb-4">
-                  <div className="bg-primary-subtle d-inline-block p-4 rounded-circle text-primary">
-                    <i className="bi bi-file-earmark-person fs-1"></i>
-                  </div>
+            <div className="card card-modern p-5 shadow-lg border-0" style={{ maxWidth: '600px' }}>
+              <div className="mb-4">
+                <div className="bg-primary-subtle d-inline-block p-4 rounded-circle text-primary">
+                  <i className="bi bi-file-earmark-person fs-1"></i>
                 </div>
-                <h2 className="fw-bold mb-3">Welcome to the Interview Simulator</h2>
-                <p className="text-muted mb-4 lead">Please upload your resume to get started.</p>
-                
-                <div className="position-relative d-inline-block mx-auto">
-                  <button className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
-                    {uploading ? (
-                      <span><span className="spinner-border spinner-border-sm me-2"></span>Uploading...</span>
-                    ) : (
-                      <span><i className="bi bi-upload me-2"></i> Upload Resume (PDF)</span>
-                    )}
-                  </button>
-                  <input 
-                    type="file" 
-                    accept=".pdf"
-                    onChange={handleFileUpload}
-                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0"
-                    style={{cursor: 'pointer'}}
-                  />
-                </div>
-             </div>
+              </div>
+              <h2 className="fw-bold mb-3">Welcome to the Interview Simulator</h2>
+              <p className="text-muted mb-4 lead">Please upload your resume to get started.</p>
+
+              <div className="position-relative d-inline-block mx-auto">
+                <button className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
+                  {uploading ? (
+                    <span><span className="spinner-border spinner-border-sm me-2"></span>Uploading...</span>
+                  ) : (
+                    <span><i className="bi bi-upload me-2"></i> Upload Resume (PDF)</span>
+                  )}
+                </button>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileUpload}
+                  className="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                  style={{ cursor: 'pointer' }}
+                />
+              </div>
+            </div>
           </div>
         ) : (
           /* 2. SIMULATOR (Resume Loaded) */
@@ -194,7 +211,7 @@ export default function App() {
             <div className="card card-modern bg-white mb-4">
               <div className="card-body p-1">
                 {/* [FIX] setQuestion is used here */}
-                <select 
+                <select
                   className="form-select form-select-lg border-0 bg-transparent fw-bold text-secondary"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
@@ -206,31 +223,31 @@ export default function App() {
                 </select>
               </div>
             </div>
-            
+
             {/* Custom Question Input */}
             {question === "custom" && (
-              <input 
-                type="text" 
-                className="form-control form-control-lg mb-4" 
-                placeholder="Type your question..." 
+              <input
+                type="text"
+                className="form-control form-control-lg mb-4"
+                placeholder="Type your question..."
                 onChange={(e) => setQuestion(e.target.value)} // [FIX] setQuestion used here too
               />
             )}
 
             {/* Answer Area */}
             <div className="mb-5 position-relative">
-              <textarea 
-                className="form-control p-4 shadow-sm" 
-                rows="8" 
+              <textarea
+                className="form-control p-4 shadow-sm"
+                rows="8"
                 placeholder="Situation: I was working on... Task: My goal was to... Action: I specifically... Result: The outcome was..."
-                style={{borderRadius: '16px', border: '1px solid #e2e8f0', resize: 'none'}}
+                style={{ borderRadius: '16px', border: '1px solid #e2e8f0', resize: 'none' }}
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
               ></textarea>
-              
+
               <div className="d-flex justify-content-end mt-3">
-                <button 
-                  className="btn btn-primary btn-lg px-5 rounded-pill shadow-sm" 
+                <button
+                  className="btn btn-primary btn-lg px-5 rounded-pill shadow-sm"
                   onClick={handleAnalyzeStream}
                   disabled={loading}
                 >
