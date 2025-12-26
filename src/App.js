@@ -3,7 +3,7 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import './App.css'; // Using the stable Bootstrap CSS
 
-const API_URL = "https://iti123-project.onrender.com; 
+const API_URL = "https://iti123-project.onrender.com"; 
 
 export default function App() {
   const [loading, setLoading] = useState(false);
