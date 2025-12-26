@@ -254,23 +254,47 @@ export default function App() {
         {loading && <ThinkingTrace currentStep={currentStep} />}
 
         {result && !loading && (
-          <div className="row g-4">
-            <div className="col-md-6">
+          <div className="row g-4 pb-5">
+            
+            {/* 1. HIRING MANAGER (Red) */}
+            <div className="col-lg-12">
               <div className="card border-0 shadow-sm h-100">
-                <div className="card-header bg-danger text-white fw-bold">Manager Critique</div>
-                <div className="card-body">
+                <div className="card-header bg-danger-subtle border-0 py-3 d-flex align-items-center">
+                  <i className="bi bi-exclamation-triangle-fill text-danger fs-5 me-3"></i>
+                  <h6 className="mb-0 fw-bold text-danger-emphasis">Hiring Manager Gaps</h6>
+                </div>
+                <div className="card-body p-4 text-secondary markdown-body">
                   <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
                 </div>
               </div>
             </div>
-            <div className="col-md-6">
+
+            {/* 2. COACH CRITIQUE (Yellow) */}
+            <div className="col-lg-12">
               <div className="card border-0 shadow-sm h-100">
-                <div className="card-header bg-success text-white fw-bold">Coach Feedback</div>
-                <div className="card-body">
-                  <ReactMarkdown>{result.coach_feedback}</ReactMarkdown>
+                <div className="card-header bg-warning-subtle border-0 py-3 d-flex align-items-center">
+                  <i className="bi bi-lightbulb-fill text-warning-emphasis fs-5 me-3"></i>
+                  <h6 className="mb-0 fw-bold text-warning-emphasis">STAR Method Check</h6>
+                </div>
+                <div className="card-body p-4 text-secondary markdown-body">
+                  <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
                 </div>
               </div>
             </div>
+
+            {/* 3. REWRITTEN ANSWER (Green) */}
+            <div className="col-lg-12">
+              <div className="card border-0 shadow-sm h-100 border-success-subtle">
+                <div className="card-header bg-success-subtle border-0 py-3 d-flex align-items-center">
+                  <i className="bi bi-check-circle-fill text-success fs-5 me-3"></i>
+                  <h6 className="mb-0 fw-bold text-success-emphasis">Optimized Model Answer</h6>
+                </div>
+                <div className="card-body p-4 text-dark bg-success-subtle bg-opacity-10 markdown-body" style={{borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px'}}>
+                  <ReactMarkdown>{result.rewritten_answer}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
       </div>
