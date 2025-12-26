@@ -168,24 +168,26 @@ export default function App() {
 
   // --- 3. RENDER ---
   return (
-    <div className="container-fluid min-vh-100 bg-light d-flex">
-      {/* SIDEBAR */}
-      <div className="bg-white border-end p-4" style={{width: '300px', minWidth: '300px'}}>
+    // 1. USE CUSTOM WRAPPER (Fixes the screen height to 100%)
+    <div className="dashboard-container">
+      
+      {/* 2. SIDEBAR (Uses custom class) */}
+      <div className="sidebar p-4">
         <h4 className="fw-bold text-primary mb-4">Poly-to-Pro</h4>
         
         {/* Status Badge */}
         <div className="mb-4">
           {serverStatus === 'ready' ? (
-             <div className="alert alert-success py-2 d-flex align-items-center">
+             <div className="alert alert-success py-2 d-flex align-items-center small fw-bold">
                <span className="me-2">●</span> System Online
              </div>
           ) : serverStatus === 'timeout' ? (
-             <div className="alert alert-danger py-2">
+             <div className="alert alert-danger py-2 small">
                <div>Connection Failed</div>
                <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p+1)}>Retry</button>
              </div>
           ) : (
-             <div className="alert alert-warning py-2">
+             <div className="alert alert-warning py-2 small">
                <div className="spinner-border spinner-border-sm me-2"></div>
                Waking up... ({elapsedTime}s)
              </div>
@@ -194,8 +196,8 @@ export default function App() {
 
         {/* Inputs */}
         <div className="mb-3">
-          <label className="small fw-bold text-muted">TARGET ROLE</label>
-          <select className="form-select" value={targetRole} onChange={e => setTargetRole(e.target.value)}>
+          <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>TARGET ROLE</label>
+          <select className="form-select shadow-sm" value={targetRole} onChange={e => setTargetRole(e.target.value)}>
             <option>Software Engineer</option>
             <option>Data Analyst</option>
             <option>Digital Marketer</option>
@@ -203,11 +205,15 @@ export default function App() {
         </div>
 
         <div className="mb-3">
-          <label className="small fw-bold text-muted">RESUME</label>
-          <div className="card p-3 text-center bg-light border-dashed">
-            {uploading ? <span className="spinner-border spinner-border-sm"></span> : 
-             resumeName ? <span className="text-success fw-bold">{resumeName}</span> : 
-             <span className="text-muted">Upload PDF</span>
+          <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>RESUME</label>
+          <div className="card p-3 text-center bg-light border-dashed position-relative">
+            {uploading ? <span className="spinner-border spinner-border-sm text-primary"></span> : 
+             resumeName ? 
+              <div className="text-truncate">
+                <i className="bi bi-check-circle-fill text-success me-2"></i>
+                <span className="text-success fw-bold small">{resumeName}</span>
+              </div> : 
+             <div className="text-muted small"><i className="bi bi-cloud-upload me-2"></i>Upload PDF</div>
             }
             <input 
               type="file" accept=".pdf" 
@@ -220,83 +226,93 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
-      <div className="flex-grow-1 p-5 overflow-auto">
-        <h1 className="display-6 fw-bold mb-4">Mock Interview</h1>
-        
-        <div className="mb-4">
-           <select className="form-select form-select-lg mb-2" value={question} onChange={e => setQuestion(e.target.value)}>
-             <option>Tell me about a time you had to manage a difficult client situation.</option>
-             <option>Describe a project where you had to analyze complex data.</option>
-             <option value="custom">-- Custom Question --</option>
-           </select>
-           {question === "custom" && (
-             <input className="form-control" placeholder="Type question..." onChange={e => setQuestion(e.target.value)} />
-           )}
-        </div>
-
-        <div className="mb-4">
-          <textarea 
-            className="form-control p-3" rows="6"
-            placeholder="Type your answer here..."
-            value={answer} onChange={e => setAnswer(e.target.value)}
-          ></textarea>
-        </div>
-
-        <button 
-          className="btn btn-primary btn-lg px-5 mb-4"
-          onClick={handleAnalyzeStream}
-          disabled={loading || serverStatus !== 'ready'}
-        >
-          {loading ? "Analyzing..." : "Validate Answer"}
-        </button>
-
-        {loading && <ThinkingTrace currentStep={currentStep} />}
-
-        {result && !loading && (
-          <div className="row g-4 pb-5">
-            
-            {/* 1. HIRING MANAGER (Red) */}
-            <div className="col-lg-12">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-header bg-danger-subtle border-0 py-3 d-flex align-items-center">
-                  <i className="bi bi-exclamation-triangle-fill text-danger fs-5 me-3"></i>
-                  <h6 className="mb-0 fw-bold text-danger-emphasis">Hiring Manager Gaps</h6>
-                </div>
-                <div className="card-body p-4 text-secondary markdown-body">
-                  <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. COACH CRITIQUE (Yellow) */}
-            <div className="col-lg-12">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-header bg-warning-subtle border-0 py-3 d-flex align-items-center">
-                  <i className="bi bi-lightbulb-fill text-warning-emphasis fs-5 me-3"></i>
-                  <h6 className="mb-0 fw-bold text-warning-emphasis">STAR Method Check</h6>
-                </div>
-                <div className="card-body p-4 text-secondary markdown-body">
-                  <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. REWRITTEN ANSWER (Green) */}
-            <div className="col-lg-12">
-              <div className="card border-0 shadow-sm h-100 border-success-subtle">
-                <div className="card-header bg-success-subtle border-0 py-3 d-flex align-items-center">
-                  <i className="bi bi-check-circle-fill text-success fs-5 me-3"></i>
-                  <h6 className="mb-0 fw-bold text-success-emphasis">Optimized Model Answer</h6>
-                </div>
-                <div className="card-body p-4 text-dark bg-success-subtle bg-opacity-10 markdown-body" style={{borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px'}}>
-                  <ReactMarkdown>{result.rewritten_answer}</ReactMarkdown>
-                </div>
-              </div>
-            </div>
-
+      {/* 3. MAIN CONTENT (Uses custom class for scrolling) */}
+      <div className="main-content">
+        <div className="container" style={{maxWidth: '900px'}}>
+          
+          <h1 className="display-6 fw-bold mb-4 text-dark">Mock Interview</h1>
+          
+          <div className="mb-4">
+             <div className="card border-0 shadow-sm">
+               <div className="card-body p-2">
+                 <select className="form-select border-0 fw-bold text-secondary" style={{fontSize: '1.1rem'}} value={question} onChange={e => setQuestion(e.target.value)}>
+                   <option>Tell me about a time you had to manage a difficult client situation.</option>
+                   <option>Describe a project where you had to analyze complex data.</option>
+                   <option value="custom">-- Custom Question --</option>
+                 </select>
+               </div>
+             </div>
+             {question === "custom" && (
+               <input className="form-control mt-2 p-3" placeholder="Type your custom question..." onChange={e => setQuestion(e.target.value)} />
+             )}
           </div>
-        )}
+
+          <div className="mb-4">
+            <textarea 
+              className="form-control p-4 shadow-sm" rows="6"
+              placeholder="Type your answer here..."
+              style={{resize: 'none', borderRadius: '12px'}}
+              value={answer} onChange={e => setAnswer(e.target.value)}
+            ></textarea>
+            
+            <div className="d-flex justify-content-end mt-3">
+              <button 
+                className="btn btn-primary btn-lg px-5 rounded-pill shadow"
+                onClick={handleAnalyzeStream}
+                disabled={loading || serverStatus !== 'ready'}
+              >
+                {loading ? <span><span className="spinner-border spinner-border-sm me-2"></span>Analyzing...</span> : "Validate Answer"}
+              </button>
+            </div>
+          </div>
+
+          {loading && <ThinkingTrace currentStep={currentStep} />}
+
+          {result && !loading && (
+            <div className="row g-4 pb-5"> 
+              
+              {/* 1. MANAGER GAPS (Red) */}
+              <div className="col-12">
+                <div className="card card-modern h-100">
+                  <div className="card-header bg-danger-subtle border-0 py-3 d-flex align-items-center">
+                    <i className="bi bi-exclamation-octagon-fill text-danger fs-5 me-3"></i>
+                    <h6 className="mb-0 fw-bold text-danger-emphasis">Manager's Gaps</h6>
+                  </div>
+                  <div className="card-body p-4 markdown-body text-secondary">
+                    <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. COACH CRITIQUE (Yellow) */}
+              <div className="col-12">
+                <div className="card card-modern h-100">
+                  <div className="card-header bg-warning-subtle border-0 py-3 d-flex align-items-center">
+                    <i className="bi bi-lightbulb-fill text-warning-emphasis fs-5 me-3"></i>
+                    <h6 className="mb-0 fw-bold text-warning-emphasis">STAR Method Critique</h6>
+                  </div>
+                  <div className="card-body p-4 markdown-body text-secondary">
+                    <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. REWRITTEN ANSWER (Green) */}
+              <div className="col-12">
+                <div className="card card-modern h-100 border-success-subtle">
+                  <div className="card-header bg-success-subtle border-0 py-3 d-flex align-items-center">
+                    <i className="bi bi-patch-check-fill text-success fs-5 me-3"></i>
+                    <h6 className="mb-0 fw-bold text-success-emphasis">Optimized Model Answer</h6>
+                  </div>
+                  <div className="card-body p-4 markdown-body text-dark bg-success-subtle bg-opacity-10">
+                    <ReactMarkdown>{result.rewritten_answer}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,15 +1,18 @@
 /* GLOBAL SETTINGS */
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f8f9fa; /* Bootstrap Light Gray */
-  overflow: hidden; /* Prevent double scrollbars */
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevents the whole browser window from scrolling */
 }
 
 /* SIDEBAR SETUP */
 .dashboard-container {
   display: flex;
-  height: 100vh;
+  height: 100vh; /* Takes up exactly the full screen height */
   width: 100vw;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -19,17 +22,19 @@ body {
   border-right: 1px solid #dee2e6;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  z-index: 1000;
+  height: 100%;
+  overflow-y: auto; /* Scrollbar if sidebar content is too long */
+  z-index: 10;
 }
 
 /* MAIN CONTENT */
 .main-content {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 0;
+  flex: 1;              /* Fill remaining width */
+  height: 100%;         /* Fill remaining height */
+  overflow-y: auto;     /* <--- KEY: Adds scrollbar to this panel only */
+  padding: 3rem;        /* Top/Side padding */
+  padding-bottom: 10rem; /* <--- KEY: Extra space at bottom so you can see the last card */
   background-color: #f8f9fa;
-  height: 100vh;
 }
 
 /* CUSTOM CARDS (To make Bootstrap look modern) */
