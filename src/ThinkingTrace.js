@@ -1,15 +1,16 @@
 import React from 'react';
 
 export default function ThinkingTrace({ currentStep }) {
-  // These are the static labels, but we unlock them based on 'currentStep' from the backend
+  // LOGIC: These steps match the backend 'step_id' events
   const steps = [
-    { id: 1, text: "Reading resume context..." },
-    { id: 2, text: "Analyzing STAR structure..." },
-    { id: 3, text: "Cross-referencing SkillsFuture..." },
-    { id: 4, text: "Drafting final feedback..." }
+    { id: 1, text: "Extracting Role & Skill Data..." },     // Backend Step 1
+    { id: 2, text: "Manager: Proficiency Analysis..." },    // Backend Step 2
+    { id: 3, text: "Coach: Structure Refinement..." },      // Backend Step 3
+    { id: 4, text: "Finalizing Architected Answer..." }     // Backend Step 4
   ];
 
   return (
+    // UI STYLE: Kept exactly as you requested
     <div className="card card-modern border-0 mb-5 fade-in bg-light">
       <div className="card-body p-4">
         <div className="d-flex align-items-center mb-4">
@@ -19,7 +20,7 @@ export default function ThinkingTrace({ currentStep }) {
 
         <div className="d-flex flex-column gap-3">
           {steps.map((step) => {
-            // LOGIC: If the backend says we are at step 3, then 1 and 2 are DONE, 3 is ACTIVE.
+            // LOGIC: Determine status based on currentStep from Backend
             let status = 'pending';
             if (currentStep > step.id) status = 'completed';
             if (currentStep === step.id) status = 'active';
