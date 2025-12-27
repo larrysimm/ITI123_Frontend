@@ -330,7 +330,6 @@ export default function App() {
                       </small>
                     </div>
 
-                    {/* MATCHED Skills (Green) */}
                     {skillAnalysis.matched.length > 0 && (
                       <div className="mb-3">
                         <h6 className="small fw-bold text-success mb-2">
@@ -338,13 +337,17 @@ export default function App() {
                         </h6>
                         <ul className="list-unstyled mb-0 ps-1">
                           {skillAnalysis.matched.map((item, i) => {
-                            // Safety Check: Handle both Strings (Old) and Objects (New)
+                            // Handle old string format vs new object format
                             const skillName = typeof item === 'string' ? item : item.skill;
                             const reason = typeof item === 'string' ? '' : item.reason;
+                            const code = item.code || ""; // <--- NEW FIELD
 
                             return (
                               <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
-                                <strong>{skillName}</strong>
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <strong>{skillName}</strong>
+                                  {code && <span className="badge bg-light text-secondary border" style={{fontSize: '0.65rem'}}>{code}</span>}
+                                </div>
                                 {reason && (
                                   <div className="text-muted fst-italic mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
                                     {reason}
@@ -365,13 +368,17 @@ export default function App() {
                         </h6>
                         <ul className="list-unstyled mb-0 ps-1">
                           {skillAnalysis.missing.map((item, i) => {
-                            // Safety Check: Handle both Strings (Old) and Objects (New)
+                             // Handle old string format vs new object format
                             const skillName = typeof item === 'string' ? item : item.skill;
                             const gap = typeof item === 'string' ? '' : item.gap;
+                            const code = item.code || ""; // <--- NEW FIELD
 
                             return (
                               <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
-                                <strong>{skillName}</strong>
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <strong>{skillName}</strong>
+                                  {code && <span className="badge bg-light text-secondary border" style={{fontSize: '0.65rem'}}>{code}</span>}
+                                </div>
                                 {gap && (
                                   <div className="text-danger mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
                                     {gap}
