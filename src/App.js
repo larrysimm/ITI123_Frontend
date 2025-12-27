@@ -3,6 +3,7 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import ThinkingTrace from './ThinkingTrace';
 import './App.css'; // Ensure you have basic styles
+import logo from './logo.png';
 
 // Use Env Var or Default to Localhost
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -234,36 +235,38 @@ export default function App() {
   // --- 3. RENDER ---
   return (
     <div className="dashboard-container">
-      
+
       {/* SIDEBAR (Always Visible) */}
       <div className="sidebar p-4">
-        <h4 className="fw-bold text-primary mb-4">Poly-to-Pro</h4>
-        
+        <div className="mb-4 d-flex align-items-center gap-2">
+          <img src={logo} alt="App Logo" style={{ height: '32px' }} />
+          <h5 className="fw-bold text-primary m-0">Poly-2-Pro</h5>
+        </div>
         {/* Status Badge */}
         <div className="mb-4">
           {serverStatus === 'ready' ? (
-             <div className="alert alert-success py-2 d-flex align-items-center small fw-bold">
-               <span className="me-2">●</span> System Online
-             </div>
+            <div className="alert alert-success py-2 d-flex align-items-center small fw-bold">
+              <span className="me-2">●</span> System Online
+            </div>
           ) : serverStatus === 'timeout' ? (
-             <div className="alert alert-danger py-2 small">
-               <div>Connection Failed</div>
-               <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p+1)}>Retry</button>
-             </div>
+            <div className="alert alert-danger py-2 small">
+              <div>Connection Failed</div>
+              <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p + 1)}>Retry</button>
+            </div>
           ) : (
-             <div className="alert alert-warning py-2 small">
-               <div className="spinner-border spinner-border-sm me-2"></div>
-               Waking up... ({elapsedTime}s)
-             </div>
+            <div className="alert alert-warning py-2 small">
+              <div className="spinner-border spinner-border-sm me-2"></div>
+              Waking up... ({elapsedTime}s)
+            </div>
           )}
         </div>
 
         {/* Inputs */}
         <div className="mb-3">
-          <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>TARGET ROLE</label>
-          <select 
-            className="form-select shadow-sm" 
-            value={targetRole} 
+          <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>TARGET ROLE</label>
+          <select
+            className="form-select shadow-sm"
+            value={targetRole}
             onChange={e => setTargetRole(e.target.value)}
             disabled={availableRoles.length === 0}
           >
@@ -279,61 +282,63 @@ export default function App() {
 
         {/* Sidebar Resume Indicator */}
         <div className="mb-3">
-           <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>RESUME STATUS</label>
-           {resumeName ? (
-              <div className="p-2 bg-success-subtle text-success rounded small fw-bold text-truncate border border-success-subtle">
-                <i className="bi bi-check-circle-fill me-2"></i>{resumeName}
-              </div>
-           ) : (
-              <div className="p-2 bg-light text-muted rounded small border border-dashed">
-                Waiting for upload...
-              </div>
-           )}
+          <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME STATUS</label>
+          {resumeName ? (
+            <div className="p-2 bg-success-subtle text-success rounded small fw-bold text-truncate border border-success-subtle">
+              <i className="bi bi-check-circle-fill me-2"></i>{resumeName}
+            </div>
+          ) : (
+            <div className="p-2 bg-light text-muted rounded small border border-dashed">
+              Waiting for upload...
+            </div>
+          )}
         </div>
       </div>
 
       {/* MAIN CONTENT AREA */}
       <div className="main-content">
-        <div className="container" style={{maxWidth: '900px'}}>
+        <div className="container" style={{ maxWidth: '900px' }}>
 
           {/* --- GATE: LANDING SCREEN (If no resume) --- */}
           {!resumeName ? (
             <div className="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center">
-              
+
               <div className="mb-3 p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
-                 <i className="bi bi-trophy-fill" style={{fontSize: '3rem'}}></i>
+                <div className="mb-4">
+                  <img src={logo} alt="Logo" style={{ width: '100px', height: 'auto' }} />
+                </div>
               </div>
-              
-              <h1 className="display-5 fw-bold text-dark mb-2">Interview Architect</h1>
+
+              <h1 className="display-5 fw-bold text-dark mb-2">Poly-2-Pro</h1>
               <p className="lead text-secondary mb-5">
                 Master your {targetRole} interview with AI-driven precision.
               </p>
 
               {/* INSTRUCTIONS CARDS */}
               <div className="row w-100 mb-5 text-start g-3 justify-content-center">
-                 <div className="col-md-4">
-                   <div className="p-3 border rounded bg-white h-100 shadow-sm">
-                     <h6 className="fw-bold text-primary"><i className="bi bi-1-circle me-2"></i>Upload Resume</h6>
-                     <small className="text-muted">Upload your PDF so the AI understands your unique background.</small>
-                   </div>
-                 </div>
-                 <div className="col-md-4">
-                   <div className="p-3 border rounded bg-white h-100 shadow-sm">
-                     <h6 className="fw-bold text-primary"><i className="bi bi-2-circle me-2"></i>Target Role</h6>
-                     <small className="text-muted">Select your desired job title to align questions with industry standards.</small>
-                   </div>
-                 </div>
-                 <div className="col-md-4">
-                   <div className="p-3 border rounded bg-white h-100 shadow-sm">
-                     <h6 className="fw-bold text-primary"><i className="bi bi-3-circle me-2"></i>Validate</h6>
-                     <small className="text-muted">Answer situational questions and get instant gap analysis & coaching.</small>
-                   </div>
-                 </div>
+                <div className="col-md-4">
+                  <div className="p-3 border rounded bg-white h-100 shadow-sm">
+                    <h6 className="fw-bold text-primary"><i className="bi bi-1-circle me-2"></i>Upload Resume</h6>
+                    <small className="text-muted">Upload your PDF so the AI understands your unique background.</small>
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="p-3 border rounded bg-white h-100 shadow-sm">
+                    <h6 className="fw-bold text-primary"><i className="bi bi-2-circle me-2"></i>Target Role</h6>
+                    <small className="text-muted">Select your desired job title to align questions with industry standards.</small>
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="p-3 border rounded bg-white h-100 shadow-sm">
+                    <h6 className="fw-bold text-primary"><i className="bi bi-3-circle me-2"></i>Validate</h6>
+                    <small className="text-muted">Answer situational questions and get instant gap analysis & coaching.</small>
+                  </div>
+                </div>
               </div>
 
               {/* UPLOAD ACTION */}
               <div className="position-relative">
-                <button 
+                <button
                   className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow fw-bold"
                   disabled={serverStatus !== 'ready' || uploading}
                 >
@@ -343,13 +348,13 @@ export default function App() {
                     <span><i className="bi bi-cloud-upload me-2"></i> Upload Resume to Start</span>
                   )}
                 </button>
-                
-                <input 
-                  type="file" accept=".pdf" 
+
+                <input
+                  type="file" accept=".pdf"
                   disabled={serverStatus !== 'ready' || uploading}
                   onChange={handleFileUpload}
                   className="position-absolute w-100 h-100 start-0 top-0 opacity-0"
-                  style={{cursor: 'pointer'}}
+                  style={{ cursor: 'pointer' }}
                 />
               </div>
 
@@ -362,78 +367,78 @@ export default function App() {
 
             </div>
           ) : (
-            
+
             /* --- MAIN INTERFACE (Resume Exists) --- */
             <>
               <div className="d-flex align-items-center justify-content-between mb-4">
                 <div>
-                   <h1 className="display-6 fw-bold text-dark m-0">Interview Architect</h1>
-                   <small className="text-muted">Optimizing answers for <strong>{targetRole}</strong></small>
+                  <h1 className="display-6 fw-bold text-dark m-0">Interview Architect</h1>
+                  <small className="text-muted">Optimizing answers for <strong>{targetRole}</strong></small>
                 </div>
-                <button onClick={() => {setResumeName(""); setResumeText("")}} className="btn btn-sm btn-outline-secondary">
+                <button onClick={() => { setResumeName(""); setResumeText("") }} className="btn btn-sm btn-outline-secondary">
                   <i className="bi bi-arrow-counterclockwise me-1"></i> Change Resume
                 </button>
               </div>
-              
+
               {/* Question Selection */}
               <div className="mb-4">
-                 <div className="card border-0 shadow-sm">
-                   <div className="card-body p-2">
-                     {!isCustomQuestion ? (
-                       <select 
-                         className="form-select border-0 fw-bold text-secondary" 
-                         style={{fontSize: '1.1rem'}} 
-                         value={question} 
-                         onChange={(e) => {
-                           if (e.target.value === "CUSTOM_MODE") {
-                             setIsCustomQuestion(true);
-                             setQuestion(""); 
-                           } else {
-                             setQuestion(e.target.value);
-                           }
-                         }}
-                       >
-                         {questionBank.map((q) => (
-                           <option key={q.id} value={q.text}>{q.text}</option>
-                         ))}
-                         <option disabled>──────────────────────────</option>
-                         <option value="CUSTOM_MODE">✎ Type a custom question...</option>
-                       </select>
-                     ) : (
-                       <div className="d-flex gap-2">
-                         <button 
-                           className="btn btn-light border text-muted"
-                           onClick={() => {
-                             setIsCustomQuestion(false);
-                             if(questionBank.length > 0) setQuestion(questionBank[0].text);
-                           }}
-                         >
-                           <i className="bi bi-arrow-left"></i>
-                         </button>
-                         <input 
-                           className="form-control border-0 fw-bold text-secondary" 
-                           placeholder="Type your question..." 
-                           value={question} 
-                           autoFocus
-                           onChange={e => setQuestion(e.target.value)}
-                         />
-                       </div>
-                     )}
-                   </div>
-                 </div>
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-2">
+                    {!isCustomQuestion ? (
+                      <select
+                        className="form-select border-0 fw-bold text-secondary"
+                        style={{ fontSize: '1.1rem' }}
+                        value={question}
+                        onChange={(e) => {
+                          if (e.target.value === "CUSTOM_MODE") {
+                            setIsCustomQuestion(true);
+                            setQuestion("");
+                          } else {
+                            setQuestion(e.target.value);
+                          }
+                        }}
+                      >
+                        {questionBank.map((q) => (
+                          <option key={q.id} value={q.text}>{q.text}</option>
+                        ))}
+                        <option disabled>──────────────────────────</option>
+                        <option value="CUSTOM_MODE">✎ Type a custom question...</option>
+                      </select>
+                    ) : (
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-light border text-muted"
+                          onClick={() => {
+                            setIsCustomQuestion(false);
+                            if (questionBank.length > 0) setQuestion(questionBank[0].text);
+                          }}
+                        >
+                          <i className="bi bi-arrow-left"></i>
+                        </button>
+                        <input
+                          className="form-control border-0 fw-bold text-secondary"
+                          placeholder="Type your question..."
+                          value={question}
+                          autoFocus
+                          onChange={e => setQuestion(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Answer Area */}
               <div className="mb-4">
-                <textarea 
+                <textarea
                   className="form-control p-4 shadow-sm" rows="6"
                   placeholder={`Type your answer here...`}
-                  style={{resize: 'none', borderRadius: '12px'}}
+                  style={{ resize: 'none', borderRadius: '12px' }}
                   value={answer} onChange={e => setAnswer(e.target.value)}
                 ></textarea>
-                
+
                 <div className="d-flex justify-content-end mt-3">
-                  <button 
+                  <button
                     className="btn btn-primary btn-lg px-5 rounded-pill shadow"
                     onClick={handleAnalyzeStream}
                     disabled={loading}
@@ -446,7 +451,7 @@ export default function App() {
               {loading && <ThinkingTrace currentStep={currentStep} />}
 
               {result && !loading && (
-                <div className="row g-4 pb-5"> 
+                <div className="row g-4 pb-5">
                   {/* Manager Gaps */}
                   <div className="col-12">
                     <div className="card card-modern h-100">
