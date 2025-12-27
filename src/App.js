@@ -204,7 +204,7 @@ export default function App() {
     
     setLoading(true);
     setResult(null);
-    setCurrentStep(1); // Reset
+    setCurrentStep(1);
     setRetryTrigger(0);
 
     try {
@@ -221,13 +221,21 @@ export default function App() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let buffer = ""; // <--- 1. Create a buffer to hold incomplete chunks
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
+        // 2. Add new chunk to the buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // 3. Split by newline to get all COMPLETE messages
+        const lines = buffer.split("\n");
+
+        // 4. The last item in 'lines' is likely incomplete (remainder). 
+        //    Pop it off and save it back to the buffer for the next loop.
+        buffer = lines.pop(); 
 
         for (const line of lines) {
           if (line.trim()) {
@@ -235,11 +243,9 @@ export default function App() {
               const data = JSON.parse(line);
 
               if (data.type === "step") {
-                // REAL-TIME UPDATE: No delays.
                 setCurrentStep(data.step_id);
               } 
               else if (data.type === "result") {
-                // The backend is done. Show results immediately.
                 setResult(data.data);
                 setLoading(false);
               }
@@ -248,7 +254,7 @@ export default function App() {
                 setLoading(false);
               }
             } catch (e) {
-              console.error("JSON Parse Error", e);
+              console.error("JSON Parse Error", e, "Line:", line);
             }
           }
         }
@@ -258,7 +264,6 @@ export default function App() {
       setLoading(false);
     }
   };
-
 
   // --- 3. RENDER ---
   return (
