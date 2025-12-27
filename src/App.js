@@ -25,6 +25,8 @@ export default function App() {
   const [questionBank, setQuestionBank] = useState([]); // Store the list
   const [isCustomQuestion, setIsCustomQuestion] = useState(false); // Toggle dropdown vs input
   const [availableRoles, setAvailableRoles] = useState([]);
+  const [skillAnalysis, setSkillAnalysis] = useState(null); // Stores the match results
+  const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
 
   // Server Health State
   const [serverStatus, setServerStatus] = useState("sleeping"); // sleeping, waking, ready, timeout
@@ -155,6 +157,26 @@ export default function App() {
     }
   }, [serverStatus]);
 
+  useEffect(() => {
+    // Only run if we have BOTH a resume text and a selected role
+    if (serverStatus === 'ready' && resumeText && targetRole) {
+      setIsAnalyzingProfile(true);
+      
+      axios.post(`${API_URL}/match_skills`, {
+        resume_text: resumeText,
+        target_role: targetRole
+      })
+      .then(res => {
+        setSkillAnalysis(res.data);
+        setIsAnalyzingProfile(false);
+      })
+      .catch(err => {
+        console.error("Skill Match Error:", err);
+        setIsAnalyzingProfile(false);
+      });
+    }
+  }, [resumeText, targetRole, serverStatus]);
+
   // --- 2. HANDLERS ---
   const handleFileUpload = async (e) => {
     if (serverStatus !== 'ready') return alert("Waiting for server...");
@@ -242,6 +264,7 @@ export default function App() {
           <img src={logo} alt="App Logo" style={{ height: '32px' }} />
           <h5 className="fw-bold text-primary m-0">Poly-2-Pro</h5>
         </div>
+        
         {/* Status Badge */}
         <div className="mb-4">
           {serverStatus === 'ready' ? (
@@ -280,19 +303,91 @@ export default function App() {
           </select>
         </div>
 
-        {/* Sidebar Resume Indicator */}
-        <div className="mb-3">
-          <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME STATUS</label>
-          {resumeName ? (
-            <div className="p-2 bg-success-subtle text-success rounded small fw-bold text-truncate border border-success-subtle">
-              <i className="bi bi-check-circle-fill me-2"></i>{resumeName}
+        {/* --- DYNAMIC SKILLS MATCHING SIDEBAR (Replaces old Resume Status) --- */}
+        {resumeName ? (
+          <div className="mb-3 animate__animated animate__fadeIn">
+            <label className="small fw-bold text-muted mb-2" style={{ fontSize: '11px' }}>
+              SKILL GAP ANALYSIS
+            </label>
+
+            <div className="card bg-white border shadow-sm">
+              <div className="card-body p-3">
+
+                {/* 1. Loading State */}
+                {isAnalyzingProfile && (
+                  <div className="text-center py-3">
+                    <div className="spinner-border spinner-border-sm text-primary mb-2"></div>
+                    <div className="small text-muted">Scanning Resume...</div>
+                  </div>
+                )}
+
+                {/* 2. Results Display */}
+                {!isAnalyzingProfile && skillAnalysis && (
+                  <>
+                    {/* Role Description Header */}
+                    <div className="mb-3 pb-2 border-bottom">
+                      <small className="text-secondary fst-italic" style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
+                        Match for: <strong>{targetRole}</strong>
+                      </small>
+                    </div>
+
+                    {/* MATCHED Skills (Green) */}
+                    {skillAnalysis.matched.length > 0 && (
+                      <div className="mb-3">
+                        <h6 className="small fw-bold text-success mb-1">
+                          <i className="bi bi-check-circle-fill me-1"></i> Matches
+                        </h6>
+                        <ul className="list-unstyled mb-0 ps-1">
+                          {skillAnalysis.matched.map((skill, i) => (
+                            <li key={i} className="text-dark small mb-1" style={{ fontSize: '0.8rem' }}>
+                              {skill}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* MISSING Skills (Gray/Red) */}
+                    {skillAnalysis.missing.length > 0 && (
+                      <div>
+                        <h6 className="small fw-bold text-secondary mb-1">
+                          <i className="bi bi-circle me-1"></i> Gaps to Address
+                        </h6>
+                        <ul className="list-unstyled mb-0 ps-1">
+                          {skillAnalysis.missing.map((skill, i) => (
+                            <li key={i} className="text-muted small mb-1" style={{ fontSize: '0.8rem' }}>
+                              {skill}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Empty State Logic */}
+                    {skillAnalysis.matched.length === 0 && skillAnalysis.missing.length === 0 && (
+                      <small className="text-muted">No specific skills found in DB for this role.</small>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-          ) : (
+
+            {/* Active Resume Badge */}
+            <div className="mt-2 text-end">
+              <span className="badge bg-light text-secondary border fw-normal text-truncate" style={{ maxWidth: '100%' }}>
+                <i className="bi bi-file-earmark-pdf me-1"></i> {resumeName}
+              </span>
+            </div>
+          </div>
+        ) : (
+          /* Fallback if no resume uploaded */
+          <div className="mb-3">
+            <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME STATUS</label>
             <div className="p-2 bg-light text-muted rounded small border border-dashed">
               Waiting for upload...
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* MAIN CONTENT AREA */}
