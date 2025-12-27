@@ -317,14 +317,13 @@ export default function App() {
                 {isAnalyzingProfile && (
                   <div className="text-center py-3">
                     <div className="spinner-border spinner-border-sm text-primary mb-2"></div>
-                    <div className="small text-muted">Scanning Resume...</div>
+                    <div className="small text-muted">Deep Matching...</div>
                   </div>
                 )}
 
                 {/* 2. Results Display */}
                 {!isAnalyzingProfile && skillAnalysis && (
                   <>
-                    {/* Role Description Header */}
                     <div className="mb-3 pb-2 border-bottom">
                       <small className="text-secondary fst-italic" style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
                         Match for: <strong>{targetRole}</strong>
@@ -334,53 +333,68 @@ export default function App() {
                     {/* MATCHED Skills (Green) */}
                     {skillAnalysis.matched.length > 0 && (
                       <div className="mb-3">
-                        <h6 className="small fw-bold text-success mb-1">
-                          <i className="bi bi-check-circle-fill me-1"></i> Matches
+                        <h6 className="small fw-bold text-success mb-2">
+                          <i className="bi bi-check-circle-fill me-1"></i> Verified Matches
                         </h6>
                         <ul className="list-unstyled mb-0 ps-1">
-                          {skillAnalysis.matched.map((skill, i) => (
-                            <li key={i} className="text-dark small mb-1" style={{ fontSize: '0.8rem' }}>
-                              {skill}
-                            </li>
-                          ))}
+                          {skillAnalysis.matched.map((item, i) => {
+                            // Safety Check: Handle both Strings (Old) and Objects (New)
+                            const skillName = typeof item === 'string' ? item : item.skill;
+                            const reason = typeof item === 'string' ? '' : item.reason;
+
+                            return (
+                              <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
+                                <strong>{skillName}</strong>
+                                {reason && (
+                                  <div className="text-muted fst-italic mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
+                                    {reason}
+                                  </div>
+                                )}
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     )}
 
-                    {/* MISSING Skills (Gray/Red) */}
+                    {/* MISSING Skills (Red) */}
                     {skillAnalysis.missing.length > 0 && (
                       <div>
-                        <h6 className="small fw-bold text-secondary mb-1">
-                          <i className="bi bi-circle me-1"></i> Gaps to Address
+                        <h6 className="small fw-bold text-danger mb-2">
+                          <i className="bi bi-exclamation-octagon-fill me-1"></i> Critical Gaps
                         </h6>
                         <ul className="list-unstyled mb-0 ps-1">
-                          {skillAnalysis.missing.map((skill, i) => (
-                            <li key={i} className="text-muted small mb-1" style={{ fontSize: '0.8rem' }}>
-                              {skill}
-                            </li>
-                          ))}
+                          {skillAnalysis.missing.map((item, i) => {
+                            // Safety Check: Handle both Strings (Old) and Objects (New)
+                            const skillName = typeof item === 'string' ? item : item.skill;
+                            const gap = typeof item === 'string' ? '' : item.gap;
+
+                            return (
+                              <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
+                                <strong>{skillName}</strong>
+                                {gap && (
+                                  <div className="text-danger mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
+                                    {gap}
+                                  </div>
+                                )}
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
-                    )}
-
-                    {/* Empty State Logic */}
-                    {skillAnalysis.matched.length === 0 && skillAnalysis.missing.length === 0 && (
-                      <small className="text-muted">No specific skills found in DB for this role.</small>
                     )}
                   </>
                 )}
               </div>
             </div>
-
-            {/* Active Resume Badge */}
+            
             <div className="mt-2 text-end">
-              <span className="badge bg-light text-secondary border fw-normal text-truncate" style={{ maxWidth: '100%' }}>
-                <i className="bi bi-file-earmark-pdf me-1"></i> {resumeName}
-              </span>
+               <span className="badge bg-light text-secondary border fw-normal">
+                 <i className="bi bi-file-earmark-pdf me-1"></i> {resumeName}
+               </span>
             </div>
           </div>
         ) : (
-          /* Fallback if no resume uploaded */
           <div className="mb-3">
             <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME STATUS</label>
             <div className="p-2 bg-light text-muted rounded small border border-dashed">
