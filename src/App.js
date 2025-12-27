@@ -230,8 +230,6 @@ export default function App() {
     }
   };
 
-  // --- 3. RENDER ---
-  // ... (Keep all your imports and state logic exactly the same) ...
 
   // --- 3. RENDER ---
   return (
@@ -279,7 +277,7 @@ export default function App() {
           </select>
         </div>
 
-        {/* Sidebar Resume Indicator (Visual confirmation) */}
+        {/* Sidebar Resume Indicator */}
         <div className="mb-3">
            <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>RESUME STATUS</label>
            {resumeName ? (
@@ -298,32 +296,54 @@ export default function App() {
       <div className="main-content">
         <div className="container" style={{maxWidth: '900px'}}>
 
-          {/* --- GATE: SHOW WELCOME IF NO RESUME --- */}
+          {/* --- GATE: LANDING SCREEN (If no resume) --- */}
           {!resumeName ? (
             <div className="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center">
               
-              <div className="mb-4 p-4 rounded-circle bg-primary bg-opacity-10 text-primary">
-                 <i className="bi bi-file-earmark-person-fill" style={{fontSize: '4rem'}}></i>
+              <div className="mb-3 p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+                 <i className="bi bi-trophy-fill" style={{fontSize: '3rem'}}></i>
               </div>
               
-              <h2 className="fw-bold text-dark mb-3">Upload your Resume to Begin</h2>
-              <p className="text-secondary mb-4" style={{maxWidth: '500px'}}>
-                We need your resume to tailor the interview questions and feedback specifically to your experience and the <strong>{targetRole}</strong> role.
+              <h1 className="display-5 fw-bold text-dark mb-2">Interview Architect</h1>
+              <p className="lead text-secondary mb-5">
+                Master your {targetRole} interview with AI-driven precision.
               </p>
 
+              {/* INSTRUCTIONS CARDS */}
+              <div className="row w-100 mb-5 text-start g-3 justify-content-center">
+                 <div className="col-md-4">
+                   <div className="p-3 border rounded bg-white h-100 shadow-sm">
+                     <h6 className="fw-bold text-primary"><i className="bi bi-1-circle me-2"></i>Upload Resume</h6>
+                     <small className="text-muted">Upload your PDF so the AI understands your unique background.</small>
+                   </div>
+                 </div>
+                 <div className="col-md-4">
+                   <div className="p-3 border rounded bg-white h-100 shadow-sm">
+                     <h6 className="fw-bold text-primary"><i className="bi bi-2-circle me-2"></i>Target Role</h6>
+                     <small className="text-muted">Select your desired job title to align questions with industry standards.</small>
+                   </div>
+                 </div>
+                 <div className="col-md-4">
+                   <div className="p-3 border rounded bg-white h-100 shadow-sm">
+                     <h6 className="fw-bold text-primary"><i className="bi bi-3-circle me-2"></i>Validate</h6>
+                     <small className="text-muted">Answer situational questions and get instant gap analysis & coaching.</small>
+                   </div>
+                 </div>
+              </div>
+
+              {/* UPLOAD ACTION */}
               <div className="position-relative">
                 <button 
-                  className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm fw-bold"
+                  className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow fw-bold"
                   disabled={serverStatus !== 'ready' || uploading}
                 >
                   {uploading ? (
-                    <span><span className="spinner-border spinner-border-sm me-2"></span>Processing PDF...</span>
+                    <span><span className="spinner-border spinner-border-sm me-2"></span>Analyzing Profile...</span>
                   ) : (
-                    <span><i className="bi bi-cloud-upload me-2"></i> Upload Resume (PDF)</span>
+                    <span><i className="bi bi-cloud-upload me-2"></i> Upload Resume to Start</span>
                   )}
                 </button>
                 
-                {/* Hidden File Input covering the button */}
                 <input 
                   type="file" accept=".pdf" 
                   disabled={serverStatus !== 'ready' || uploading}
@@ -335,26 +355,27 @@ export default function App() {
 
               {serverStatus !== 'ready' && (
                 <div className="mt-3 text-muted small">
-                  Waiting for system to wake up...
+                  <span className="spinner-border spinner-border-sm me-2"></span>
+                  System initializing...
                 </div>
               )}
 
             </div>
           ) : (
             
-            /* --- MAIN INTERFACE: SHOW ONLY IF RESUME EXISTS --- */
+            /* --- MAIN INTERFACE (Resume Exists) --- */
             <>
-              {/* Debug Box (Optional - remove when ready) */}
-              {/* <div className="alert alert-info py-1 mb-4 small">...debug info...</div> */}
-              
               <div className="d-flex align-items-center justify-content-between mb-4">
-                <h1 className="display-6 fw-bold text-dark m-0">Mock Interview</h1>
+                <div>
+                   <h1 className="display-6 fw-bold text-dark m-0">Interview Architect</h1>
+                   <small className="text-muted">Optimizing answers for <strong>{targetRole}</strong></small>
+                </div>
                 <button onClick={() => {setResumeName(""); setResumeText("")}} className="btn btn-sm btn-outline-secondary">
                   <i className="bi bi-arrow-counterclockwise me-1"></i> Change Resume
                 </button>
               </div>
               
-              {/* Question Selection Area */}
+              {/* Question Selection */}
               <div className="mb-4">
                  <div className="card border-0 shadow-sm">
                    <div className="card-body p-2">
@@ -406,7 +427,7 @@ export default function App() {
               <div className="mb-4">
                 <textarea 
                   className="form-control p-4 shadow-sm" rows="6"
-                  placeholder={`Answer as a ${targetRole}...`}
+                  placeholder={`Type your answer here...`}
                   style={{resize: 'none', borderRadius: '12px'}}
                   value={answer} onChange={e => setAnswer(e.target.value)}
                 ></textarea>
@@ -417,7 +438,7 @@ export default function App() {
                     onClick={handleAnalyzeStream}
                     disabled={loading}
                   >
-                    {loading ? <span><span className="spinner-border spinner-border-sm me-2"></span>Analyzing...</span> : "Validate Answer"}
+                    {loading ? <span><span className="spinner-border spinner-border-sm me-2"></span>Architecting...</span> : "Validate Answer"}
                   </button>
                 </div>
               </div>
@@ -426,7 +447,7 @@ export default function App() {
 
               {result && !loading && (
                 <div className="row g-4 pb-5"> 
-                  {/* ... (Keep your Result Cards: Manager, Coach, Rewrite) ... */}
+                  {/* Manager Gaps */}
                   <div className="col-12">
                     <div className="card card-modern h-100">
                       <div className="card-header bg-danger-subtle border-0 py-3 d-flex align-items-center">
@@ -439,11 +460,12 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Coach Critique */}
                   <div className="col-12">
                     <div className="card card-modern h-100">
                       <div className="card-header bg-warning-subtle border-0 py-3 d-flex align-items-center">
                         <i className="bi bi-lightbulb-fill text-warning-emphasis fs-5 me-3"></i>
-                        <h6 className="mb-0 fw-bold text-warning-emphasis">STAR Method Critique</h6>
+                        <h6 className="mb-0 fw-bold text-warning-emphasis">Structure Critique</h6>
                       </div>
                       <div className="card-body p-4 markdown-body text-secondary">
                         <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
@@ -451,11 +473,12 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Optimized Answer */}
                   <div className="col-12">
                     <div className="card card-modern h-100 border-success-subtle">
                       <div className="card-header bg-success-subtle border-0 py-3 d-flex align-items-center">
                         <i className="bi bi-patch-check-fill text-success fs-5 me-3"></i>
-                        <h6 className="mb-0 fw-bold text-success-emphasis">Optimized Model Answer</h6>
+                        <h6 className="mb-0 fw-bold text-success-emphasis">Architected Response</h6>
                       </div>
                       <div className="card-body p-4 markdown-body text-dark bg-success-subtle bg-opacity-10">
                         <ReactMarkdown>{result.rewritten_answer}</ReactMarkdown>
