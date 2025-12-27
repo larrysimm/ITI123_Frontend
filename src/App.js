@@ -231,47 +231,47 @@ export default function App() {
   };
 
   // --- 3. RENDER ---
-  return (
-    // 1. USE CUSTOM WRAPPER (Fixes the screen height to 100%)
-    <div className="dashboard-container">
+  // ... (Keep all your imports and state logic exactly the same) ...
 
-      {/* 2. SIDEBAR (Uses custom class) */}
+  // --- 3. RENDER ---
+  return (
+    <div className="dashboard-container">
+      
+      {/* SIDEBAR (Always Visible) */}
       <div className="sidebar p-4">
         <h4 className="fw-bold text-primary mb-4">Poly-to-Pro</h4>
-
+        
         {/* Status Badge */}
         <div className="mb-4">
           {serverStatus === 'ready' ? (
-            <div className="alert alert-success py-2 d-flex align-items-center small fw-bold">
-              <span className="me-2">●</span> System Online
-            </div>
+             <div className="alert alert-success py-2 d-flex align-items-center small fw-bold">
+               <span className="me-2">●</span> System Online
+             </div>
           ) : serverStatus === 'timeout' ? (
-            <div className="alert alert-danger py-2 small">
-              <div>Connection Failed</div>
-              <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p + 1)}>Retry</button>
-            </div>
+             <div className="alert alert-danger py-2 small">
+               <div>Connection Failed</div>
+               <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p+1)}>Retry</button>
+             </div>
           ) : (
-            <div className="alert alert-warning py-2 small">
-              <div className="spinner-border spinner-border-sm me-2"></div>
-              Waking up... ({elapsedTime}s)
-            </div>
+             <div className="alert alert-warning py-2 small">
+               <div className="spinner-border spinner-border-sm me-2"></div>
+               Waking up... ({elapsedTime}s)
+             </div>
           )}
         </div>
 
         {/* Inputs */}
         <div className="mb-3">
-          <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>TARGET ROLE</label>
-          <select
-            className="form-select shadow-sm"
-            value={targetRole}
+          <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>TARGET ROLE</label>
+          <select 
+            className="form-select shadow-sm" 
+            value={targetRole} 
             onChange={e => setTargetRole(e.target.value)}
-            disabled={availableRoles.length === 0} // Disable if loading/empty
+            disabled={availableRoles.length === 0}
           >
             {availableRoles.length > 0 ? (
               availableRoles.map((role, index) => (
-                <option key={index} value={role}>
-                  {role}
-                </option>
+                <option key={index} value={role}>{role}</option>
               ))
             ) : (
               <option>Loading roles...</option>
@@ -279,167 +279,194 @@ export default function App() {
           </select>
         </div>
 
+        {/* Sidebar Resume Indicator (Visual confirmation) */}
         <div className="mb-3">
-          <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME</label>
-          <div className="card p-3 text-center bg-light border-dashed position-relative">
-            {uploading ? <span className="spinner-border spinner-border-sm text-primary"></span> :
-              resumeName ?
-                <div className="text-truncate">
-                  <i className="bi bi-check-circle-fill text-success me-2"></i>
-                  <span className="text-success fw-bold small">{resumeName}</span>
-                </div> :
-                <div className="text-muted small"><i className="bi bi-cloud-upload me-2"></i>Upload PDF</div>
-            }
-            <input
-              type="file" accept=".pdf"
-              disabled={serverStatus !== 'ready'}
-              onChange={handleFileUpload}
-              className="position-absolute w-100 h-100 start-0 top-0 opacity-0"
-              style={{ cursor: 'pointer' }}
-            />
-          </div>
+           <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>RESUME STATUS</label>
+           {resumeName ? (
+              <div className="p-2 bg-success-subtle text-success rounded small fw-bold text-truncate border border-success-subtle">
+                <i className="bi bi-check-circle-fill me-2"></i>{resumeName}
+              </div>
+           ) : (
+              <div className="p-2 bg-light text-muted rounded small border border-dashed">
+                Waiting for upload...
+              </div>
+           )}
         </div>
       </div>
 
-      {/* 3. MAIN CONTENT (Uses custom class for scrolling) */}
+      {/* MAIN CONTENT AREA */}
       <div className="main-content">
-        <div className="container" style={{ maxWidth: '900px' }}>
-          {/* --- DEBUG BOX START --- */}
-          <div className="alert alert-info">
-            <small>Debug Status: {serverStatus}</small><br />
-            <small>Questions in Memory: {questionBank.length}</small>
-            <details>
-              <summary>View Raw Data</summary>
-              <pre>{JSON.stringify(questionBank, null, 2)}</pre>
-            </details>
-          </div>
-          {/* --- DEBUG BOX END --- */}
+        <div className="container" style={{maxWidth: '900px'}}>
 
-          <h1 className="display-6 fw-bold mb-4 text-dark">Mock Interview</h1>
+          {/* --- GATE: SHOW WELCOME IF NO RESUME --- */}
+          {!resumeName ? (
+            <div className="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center">
+              
+              <div className="mb-4 p-4 rounded-circle bg-primary bg-opacity-10 text-primary">
+                 <i className="bi bi-file-earmark-person-fill" style={{fontSize: '4rem'}}></i>
+              </div>
+              
+              <h2 className="fw-bold text-dark mb-3">Upload your Resume to Begin</h2>
+              <p className="text-secondary mb-4" style={{maxWidth: '500px'}}>
+                We need your resume to tailor the interview questions and feedback specifically to your experience and the <strong>{targetRole}</strong> role.
+              </p>
 
-          <div className="mb-4">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body p-2">
+              <div className="position-relative">
+                <button 
+                  className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-sm fw-bold"
+                  disabled={serverStatus !== 'ready' || uploading}
+                >
+                  {uploading ? (
+                    <span><span className="spinner-border spinner-border-sm me-2"></span>Processing PDF...</span>
+                  ) : (
+                    <span><i className="bi bi-cloud-upload me-2"></i> Upload Resume (PDF)</span>
+                  )}
+                </button>
+                
+                {/* Hidden File Input covering the button */}
+                <input 
+                  type="file" accept=".pdf" 
+                  disabled={serverStatus !== 'ready' || uploading}
+                  onChange={handleFileUpload}
+                  className="position-absolute w-100 h-100 start-0 top-0 opacity-0"
+                  style={{cursor: 'pointer'}}
+                />
+              </div>
 
-                {/* MODE A: DROPDOWN LIST */}
-                {!isCustomQuestion ? (
-                  <select
-                    className="form-select border-0 fw-bold text-secondary"
-                    style={{ fontSize: '1.1rem' }}
-                    value={question}
-                    onChange={(e) => {
-                      if (e.target.value === "CUSTOM_MODE") {
-                        setIsCustomQuestion(true);
-                        setQuestion(""); // Clear text for typing
-                      } else {
-                        setQuestion(e.target.value);
-                      }
-                    }}
+              {serverStatus !== 'ready' && (
+                <div className="mt-3 text-muted small">
+                  Waiting for system to wake up...
+                </div>
+              )}
+
+            </div>
+          ) : (
+            
+            /* --- MAIN INTERFACE: SHOW ONLY IF RESUME EXISTS --- */
+            <>
+              {/* Debug Box (Optional - remove when ready) */}
+              {/* <div className="alert alert-info py-1 mb-4 small">...debug info...</div> */}
+              
+              <div className="d-flex align-items-center justify-content-between mb-4">
+                <h1 className="display-6 fw-bold text-dark m-0">Mock Interview</h1>
+                <button onClick={() => {setResumeName(""); setResumeText("")}} className="btn btn-sm btn-outline-secondary">
+                  <i className="bi bi-arrow-counterclockwise me-1"></i> Change Resume
+                </button>
+              </div>
+              
+              {/* Question Selection Area */}
+              <div className="mb-4">
+                 <div className="card border-0 shadow-sm">
+                   <div className="card-body p-2">
+                     {!isCustomQuestion ? (
+                       <select 
+                         className="form-select border-0 fw-bold text-secondary" 
+                         style={{fontSize: '1.1rem'}} 
+                         value={question} 
+                         onChange={(e) => {
+                           if (e.target.value === "CUSTOM_MODE") {
+                             setIsCustomQuestion(true);
+                             setQuestion(""); 
+                           } else {
+                             setQuestion(e.target.value);
+                           }
+                         }}
+                       >
+                         {questionBank.map((q) => (
+                           <option key={q.id} value={q.text}>{q.text}</option>
+                         ))}
+                         <option disabled>──────────────────────────</option>
+                         <option value="CUSTOM_MODE">✎ Type a custom question...</option>
+                       </select>
+                     ) : (
+                       <div className="d-flex gap-2">
+                         <button 
+                           className="btn btn-light border text-muted"
+                           onClick={() => {
+                             setIsCustomQuestion(false);
+                             if(questionBank.length > 0) setQuestion(questionBank[0].text);
+                           }}
+                         >
+                           <i className="bi bi-arrow-left"></i>
+                         </button>
+                         <input 
+                           className="form-control border-0 fw-bold text-secondary" 
+                           placeholder="Type your question..." 
+                           value={question} 
+                           autoFocus
+                           onChange={e => setQuestion(e.target.value)}
+                         />
+                       </div>
+                     )}
+                   </div>
+                 </div>
+              </div>
+
+              {/* Answer Area */}
+              <div className="mb-4">
+                <textarea 
+                  className="form-control p-4 shadow-sm" rows="6"
+                  placeholder={`Answer as a ${targetRole}...`}
+                  style={{resize: 'none', borderRadius: '12px'}}
+                  value={answer} onChange={e => setAnswer(e.target.value)}
+                ></textarea>
+                
+                <div className="d-flex justify-content-end mt-3">
+                  <button 
+                    className="btn btn-primary btn-lg px-5 rounded-pill shadow"
+                    onClick={handleAnalyzeStream}
+                    disabled={loading}
                   >
-                    {/* 1. Map questions from JSON/DB */}
-                    {questionBank.map((q, index) => (
-                      <option key={index} value={q.text}>
-                        {q.text}
-                      </option>
-                    ))}
-
-                    {/* 2. Divider & Custom Option */}
-                    <option disabled>──────────────────────────</option>
-                    <option value="CUSTOM_MODE">✎ Type a custom question...</option>
-                  </select>
-                ) : (
-
-                  /* MODE B: TEXT INPUT (Back button included) */
-                  <div className="d-flex gap-2">
-                    <button
-                      className="btn btn-light border text-muted"
-                      onClick={() => {
-                        setIsCustomQuestion(false);
-                        // Reset to first question in bank if exists
-                        if (questionBank.length > 0) setQuestion(questionBank[0].text);
-                      }}
-                      title="Back to list"
-                    >
-                      <i className="bi bi-arrow-left"></i>
-                    </button>
-                    <input
-                      className="form-control border-0 fw-bold text-secondary"
-                      placeholder="Type your interview question here..."
-                      value={question}
-                      autoFocus
-                      onChange={e => setQuestion(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <textarea
-              className="form-control p-4 shadow-sm" rows="6"
-              placeholder="Type your answer here..."
-              style={{ resize: 'none', borderRadius: '12px' }}
-              value={answer} onChange={e => setAnswer(e.target.value)}
-            ></textarea>
-
-            <div className="d-flex justify-content-end mt-3">
-              <button
-                className="btn btn-primary btn-lg px-5 rounded-pill shadow"
-                onClick={handleAnalyzeStream}
-                disabled={loading || serverStatus !== 'ready'}
-              >
-                {loading ? <span><span className="spinner-border spinner-border-sm me-2"></span>Analyzing...</span> : "Validate Answer"}
-              </button>
-            </div>
-          </div>
-
-          {loading && <ThinkingTrace currentStep={currentStep} />}
-
-          {result && !loading && (
-            <div className="row g-4 pb-5">
-
-              {/* 1. MANAGER GAPS (Red) */}
-              <div className="col-12">
-                <div className="card card-modern h-100">
-                  <div className="card-header bg-danger-subtle border-0 py-3 d-flex align-items-center">
-                    <i className="bi bi-exclamation-octagon-fill text-danger fs-5 me-3"></i>
-                    <h6 className="mb-0 fw-bold text-danger-emphasis">Manager's Gaps</h6>
-                  </div>
-                  <div className="card-body p-4 markdown-body text-secondary">
-                    <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
-                  </div>
+                    {loading ? <span><span className="spinner-border spinner-border-sm me-2"></span>Analyzing...</span> : "Validate Answer"}
+                  </button>
                 </div>
               </div>
 
-              {/* 2. COACH CRITIQUE (Yellow) */}
-              <div className="col-12">
-                <div className="card card-modern h-100">
-                  <div className="card-header bg-warning-subtle border-0 py-3 d-flex align-items-center">
-                    <i className="bi bi-lightbulb-fill text-warning-emphasis fs-5 me-3"></i>
-                    <h6 className="mb-0 fw-bold text-warning-emphasis">STAR Method Critique</h6>
+              {loading && <ThinkingTrace currentStep={currentStep} />}
+
+              {result && !loading && (
+                <div className="row g-4 pb-5"> 
+                  {/* ... (Keep your Result Cards: Manager, Coach, Rewrite) ... */}
+                  <div className="col-12">
+                    <div className="card card-modern h-100">
+                      <div className="card-header bg-danger-subtle border-0 py-3 d-flex align-items-center">
+                        <i className="bi bi-exclamation-octagon-fill text-danger fs-5 me-3"></i>
+                        <h6 className="mb-0 fw-bold text-danger-emphasis">Manager's Gaps</h6>
+                      </div>
+                      <div className="card-body p-4 markdown-body text-secondary">
+                        <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
+                      </div>
+                    </div>
                   </div>
-                  <div className="card-body p-4 markdown-body text-secondary">
-                    <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
+
+                  <div className="col-12">
+                    <div className="card card-modern h-100">
+                      <div className="card-header bg-warning-subtle border-0 py-3 d-flex align-items-center">
+                        <i className="bi bi-lightbulb-fill text-warning-emphasis fs-5 me-3"></i>
+                        <h6 className="mb-0 fw-bold text-warning-emphasis">STAR Method Critique</h6>
+                      </div>
+                      <div className="card-body p-4 markdown-body text-secondary">
+                        <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="card card-modern h-100 border-success-subtle">
+                      <div className="card-header bg-success-subtle border-0 py-3 d-flex align-items-center">
+                        <i className="bi bi-patch-check-fill text-success fs-5 me-3"></i>
+                        <h6 className="mb-0 fw-bold text-success-emphasis">Optimized Model Answer</h6>
+                      </div>
+                      <div className="card-body p-4 markdown-body text-dark bg-success-subtle bg-opacity-10">
+                        <ReactMarkdown>{result.rewritten_answer}</ReactMarkdown>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* 3. REWRITTEN ANSWER (Green) */}
-              <div className="col-12">
-                <div className="card card-modern h-100 border-success-subtle">
-                  <div className="card-header bg-success-subtle border-0 py-3 d-flex align-items-center">
-                    <i className="bi bi-patch-check-fill text-success fs-5 me-3"></i>
-                    <h6 className="mb-0 fw-bold text-success-emphasis">Optimized Model Answer</h6>
-                  </div>
-                  <div className="card-body p-4 markdown-body text-dark bg-success-subtle bg-opacity-10">
-                    <ReactMarkdown>{result.rewritten_answer}</ReactMarkdown>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+              )}
+            </>
           )}
+
         </div>
       </div>
     </div>
