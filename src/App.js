@@ -200,55 +200,61 @@ export default function App() {
   };
 
   const handleAnalyzeStream = async () => {
-    if (!answer.trim()) return alert("Please type an answer.");
-
+    if (!resumeText) return;
+    
     setLoading(true);
     setResult(null);
-    setCurrentStep(1);
+    setCurrentStep(1); // Reset
+    setRetryTrigger(0);
 
     try {
       const response = await fetch(`${API_URL}/analyze_stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          student_answer: answer,
-          question: question,
+          resume_text: resumeText,
           target_role: targetRole,
-          resume_text: resumeText || "No resume."
+          question: question,
+          student_answer: answer
         })
       });
 
-      if (!response.ok) throw new Error("Network Error");
-
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = "";
 
       while (true) {
-        const { done, value } = await reader.read();
+        const { value, done } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop(); // Keep incomplete chunk
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
 
         for (const line of lines) {
-          if (!line.trim()) continue;
-          try {
-            const json = JSON.parse(line);
-            if (json.type === "step") setCurrentStep(json.step_id);
-            else if (json.type === "result") setResult(json.data);
-            else if (json.type === "error") {
-              alert("Error: " + json.message);
-              setLoading(false);
-              return;
+          if (line.trim()) {
+            try {
+              const data = JSON.parse(line);
+
+              if (data.type === "step") {
+                // REAL-TIME UPDATE: No delays.
+                setCurrentStep(data.step_id);
+              } 
+              else if (data.type === "result") {
+                // The backend is done. Show results immediately.
+                setResult(data.data);
+                setLoading(false);
+              }
+              else if (data.type === "error") {
+                console.error("Stream error:", data.message);
+                setLoading(false);
+              }
+            } catch (e) {
+              console.error("JSON Parse Error", e);
             }
-          } catch (e) { console.error(e); }
+          }
         }
       }
-    } catch (err) {
-      alert("Connection Failed.");
-    } finally {
+    } catch (error) {
+      console.error("Fetch error:", error);
       setLoading(false);
     }
   };
