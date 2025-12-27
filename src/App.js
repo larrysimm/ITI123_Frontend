@@ -655,11 +655,11 @@ export default function App() {
                         <i className="bi bi-patch-check-fill text-success fs-5 me-3"></i>
                         <h6 className="mb-0 fw-bold text-success-emphasis">Architected Response</h6>
                       </div>
-                      <div className="card-body p-4 markdown-body text-dark bg-success-subtle bg-opacity-10">
-                          <div className="card-text text-dark" style={{ lineHeight: '1.6' }}>
+                        <div className="card-body p-4 bg-white">
+                          <div className="card-text text-dark" style={{ lineHeight: '1.7', fontSize: '1.05rem' }}>
                             {formatStarResponse(result.rewritten_answer)}
                           </div>
-                      </div>
+                        </div>
                     </div>
                   </div>
                 </div>
