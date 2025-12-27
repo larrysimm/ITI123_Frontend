@@ -648,18 +648,20 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Optimized Answer */}
+                  {/* Architected Response Card */}
                   <div className="col-12">
                     <div className="card card-modern h-100 border-success-subtle">
+                      {/* Header: Light Green */}
                       <div className="card-header bg-success-subtle border-0 py-3 d-flex align-items-center">
-                        <i className="bi bi-patch-check-fill text-success fs-5 me-3"></i>
+                        <i className="bi bi-patch-check-fill text-success-emphasis fs-5 me-3"></i>
                         <h6 className="mb-0 fw-bold text-success-emphasis">Architected Response</h6>
                       </div>
-                        <div className="card-body p-4 bg-white">
-                          <div className="card-text text-dark" style={{ lineHeight: '1.7', fontSize: '1.05rem' }}>
-                            {formatStarResponse(result.rewritten_answer)}
-                          </div>
+                      {/* Body: Formatted Text */}
+                      <div className="card-body p-4 bg-white">
+                        <div className="card-text text-dark" style={{ lineHeight: '1.7', fontSize: '1.05rem' }}>
+                          {formatStarResponse(result.rewritten_answer)}
                         </div>
+                      </div>
                     </div>
                   </div>
                 </div>
