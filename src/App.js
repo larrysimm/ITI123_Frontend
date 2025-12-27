@@ -302,13 +302,9 @@ export default function App() {
           {/* --- GATE: LANDING SCREEN (If no resume) --- */}
           {!resumeName ? (
             <div className="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center">
-
-              <div className="mb-3 p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
-                <div className="mb-4">
-                  <img src={logo} alt="Logo" style={{ width: '100px', height: 'auto' }} />
-                </div>
+              <div className="mb-4">
+                <img src={logo} alt="Logo" style={{ width: '200px', height: 'auto' }} />
               </div>
-
               <h1 className="display-5 fw-bold text-dark mb-2">Poly-2-Pro</h1>
               <p className="lead text-secondary mb-5">
                 Master your {targetRole} interview with AI-driven precision.
