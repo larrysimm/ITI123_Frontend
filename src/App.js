@@ -266,6 +266,28 @@ export default function App() {
     }
   };
 
+  // Helper to format STAR text with bold headers and new paragraphs
+  const formatStarResponse = (text) => {
+    if (!text) return null;
+
+    // Split the text by the keywords, keeping the keywords in the result
+    // The regex looks for the words Situation, Task, Action, Result followed by a colon
+    const parts = text.split(/(Situation:|Task:|Action:|Result:)/g);
+
+    return parts.map((part, index) => {
+      // If it's a keyword, make it bold
+      if (['Situation:', 'Task:', 'Action:', 'Result:'].includes(part.trim())) {
+        return (
+          <span key={index} className="fw-bold d-block mt-2 text-primary">
+            {part}
+          </span>
+        );
+      }
+      // If it's the content, just display it
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   // --- 3. RENDER ---
   return (
     <div className="dashboard-container">
@@ -634,7 +656,9 @@ export default function App() {
                         <h6 className="mb-0 fw-bold text-success-emphasis">Architected Response</h6>
                       </div>
                       <div className="card-body p-4 markdown-body text-dark bg-success-subtle bg-opacity-10">
-                        <ReactMarkdown>{result.rewritten_answer}</ReactMarkdown>
+                          <div className="card-text text-dark" style={{ lineHeight: '1.6' }}>
+                            {formatStarResponse(result.rewritten_answer)}
+                          </div>
                       </div>
                     </div>
                   </div>
