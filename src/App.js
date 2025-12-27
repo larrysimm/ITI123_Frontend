@@ -27,6 +27,7 @@ export default function App() {
   const [availableRoles, setAvailableRoles] = useState([]);
   const [skillAnalysis, setSkillAnalysis] = useState(null); // Stores the match results
   const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
+  const isValidateDisabled = !answer.trim() || !skillAnalysis;
 
   // Server Health State
   const [serverStatus, setServerStatus] = useState("sleeping"); // sleeping, waking, ready, timeout
@@ -161,19 +162,19 @@ export default function App() {
     // Only run if we have BOTH a resume text and a selected role
     if (serverStatus === 'ready' && resumeText && targetRole) {
       setIsAnalyzingProfile(true);
-      
+
       axios.post(`${API_URL}/match_skills`, {
         resume_text: resumeText,
         target_role: targetRole
       })
-      .then(res => {
-        setSkillAnalysis(res.data);
-        setIsAnalyzingProfile(false);
-      })
-      .catch(err => {
-        console.error("Skill Match Error:", err);
-        setIsAnalyzingProfile(false);
-      });
+        .then(res => {
+          setSkillAnalysis(res.data);
+          setIsAnalyzingProfile(false);
+        })
+        .catch(err => {
+          console.error("Skill Match Error:", err);
+          setIsAnalyzingProfile(false);
+        });
     }
   }, [resumeText, targetRole, serverStatus]);
 
@@ -201,7 +202,7 @@ export default function App() {
 
   const handleAnalyzeStream = async () => {
     if (!resumeText) return;
-    
+
     setLoading(true);
     setResult(null);
     setCurrentStep(1);
@@ -235,7 +236,7 @@ export default function App() {
 
         // 4. The last item in 'lines' is likely incomplete (remainder). 
         //    Pop it off and save it back to the buffer for the next loop.
-        buffer = lines.pop(); 
+        buffer = lines.pop();
 
         for (const line of lines) {
           if (line.trim()) {
@@ -244,7 +245,7 @@ export default function App() {
 
               if (data.type === "step") {
                 setCurrentStep(data.step_id);
-              } 
+              }
               else if (data.type === "result") {
                 setResult(data.data);
                 setLoading(false);
@@ -275,7 +276,7 @@ export default function App() {
           <img src={logo} alt="App Logo" style={{ height: '32px' }} />
           <h5 className="fw-bold text-primary m-0">Poly-2-Pro</h5>
         </div>
-        
+
         {/* Status Badge */}
         <div className="mb-4">
           {serverStatus === 'ready' ? (
@@ -357,7 +358,7 @@ export default function App() {
                               <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
                                 <div className="d-flex justify-content-between align-items-center">
                                   <strong>{skillName}</strong>
-                                  {code && <span className="badge bg-light text-secondary border" style={{fontSize: '0.65rem'}}>{code}</span>}
+                                  {code && <span className="badge bg-light text-secondary border" style={{ fontSize: '0.65rem' }}>{code}</span>}
                                 </div>
                                 {reason && (
                                   <div className="text-muted fst-italic mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
@@ -379,7 +380,7 @@ export default function App() {
                         </h6>
                         <ul className="list-unstyled mb-0 ps-1">
                           {skillAnalysis.missing.map((item, i) => {
-                             // Handle old string format vs new object format
+                            // Handle old string format vs new object format
                             const skillName = typeof item === 'string' ? item : item.skill;
                             const gap = typeof item === 'string' ? '' : item.gap;
                             const code = item.code || ""; // <--- NEW FIELD
@@ -388,7 +389,7 @@ export default function App() {
                               <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
                                 <div className="d-flex justify-content-between align-items-center">
                                   <strong>{skillName}</strong>
-                                  {code && <span className="badge bg-light text-secondary border" style={{fontSize: '0.65rem'}}>{code}</span>}
+                                  {code && <span className="badge bg-light text-secondary border" style={{ fontSize: '0.65rem' }}>{code}</span>}
                                 </div>
                                 {gap && (
                                   <div className="text-danger mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
@@ -405,11 +406,11 @@ export default function App() {
                 )}
               </div>
             </div>
-            
+
             <div className="mt-2 text-end">
-               <span className="badge bg-light text-secondary border fw-normal">
-                 <i className="bi bi-file-earmark-pdf me-1"></i> {resumeName}
-               </span>
+              <span className="badge bg-light text-secondary border fw-normal">
+                <i className="bi bi-file-earmark-pdf me-1"></i> {resumeName}
+              </span>
             </div>
           </div>
         ) : (
@@ -561,12 +562,37 @@ export default function App() {
 
                 <div className="d-flex justify-content-end mt-3">
                   <button
-                    className="btn btn-primary btn-lg px-5 rounded-pill shadow"
                     onClick={handleAnalyzeStream}
-                    disabled={loading}
+                    // 1. DISABLE ATTRIBUTE
+                    disabled={isValidateDisabled || loading}
+                    // 2. VISUAL FEEDBACK (Bootstrap classes)
+                    className={`btn w-100 py-3 fw-bold shadow-sm transition-all ${isValidateDisabled
+                        ? 'btn-secondary opacity-50 cursor-not-allowed'
+                        : 'btn-primary'
+                      }`}
+                    style={{ borderRadius: '12px' }}
                   >
-                    {loading ? <span><span className="spinner-border spinner-border-sm me-2"></span>Architecting...</span> : "Validate Answer"}
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Analyzing Response...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-patch-check-fill me-2"></i>
+                        Validate Answer
+                      </>
+                    )}
                   </button>
+                  {isValidateDisabled && !loading && (
+                    <div className="text-center mt-2">
+                      <small className="text-muted fst-italic">
+                        {!skillAnalysis
+                          ? "* Please run the Skill Gap Analysis first."
+                          : "* Please type an answer to validate."}
+                      </small>
+                    </div>
+                  )}
                 </div>
               </div>
 
