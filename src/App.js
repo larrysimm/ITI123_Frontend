@@ -5,14 +5,14 @@ import ThinkingTrace from './ThinkingTrace';
 import './App.css'; // Ensure you have basic styles
 
 // Use Env Var or Default to Localhost
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000"; 
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 const MAX_WAIT_TIME_MS = 300000; // 5 Minutes Timeout
 
 export default function App() {
   // UI State
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
   // Data State
   const [resumeName, setResumeName] = useState("");
   const [resumeText, setResumeText] = useState("");
@@ -23,6 +23,7 @@ export default function App() {
   const [currentStep, setCurrentStep] = useState(0);
   const [questionBank, setQuestionBank] = useState([]); // Store the list
   const [isCustomQuestion, setIsCustomQuestion] = useState(false); // Toggle dropdown vs input
+  const [availableRoles, setAvailableRoles] = useState([]);
 
   // Server Health State
   const [serverStatus, setServerStatus] = useState("sleeping"); // sleeping, waking, ready, timeout
@@ -92,18 +93,18 @@ export default function App() {
   }, [serverStatus]);
 
   // FETCH QUESTIONS ON LOAD
-useEffect(() => {
+  useEffect(() => {
     // Only run if we think the server is ready (or bypass check)
-    if (serverStatus === 'ready') { 
+    if (serverStatus === 'ready') {
       console.log("🚀 React is asking for questions...");
 
       axios.get(`${API_URL}/questions`)
         .then(res => {
           console.log("✅ DATA RECEIVED IN REACT:", res.data); // Look for this in Console
-          
+
           // 1. Force the data into the state
           setQuestionBank(res.data);
-          
+
           // 2. Select the first question immediately
           if (Array.isArray(res.data) && res.data.length > 0) {
             setQuestion(res.data[0].text);
@@ -118,17 +119,52 @@ useEffect(() => {
     }
   }, [serverStatus]);
 
+  // ... replace the existing "FETCH QUESTIONS ON LOAD" useEffect with this ...
+
+  useEffect(() => {
+    if (serverStatus === 'ready') {
+      console.log("🚀 Fetching initial data (Questions & Roles)...");
+
+      // A. Fetch Questions
+      axios.get(`${API_URL}/questions`)
+        .then(res => {
+          setQuestionBank(res.data);
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setQuestion(res.data[0].text);
+          }
+        })
+        .catch(err => console.error("❌ Error fetching questions:", err));
+
+      // B. Fetch Roles (NEW)
+      axios.get(`${API_URL}/roles`)
+        .then(res => {
+          console.log("✅ Roles received:", res.data);
+          setAvailableRoles(res.data);
+
+          // Set default role if list is not empty
+          if (res.data.length > 0) {
+            // Keep existing selection if valid, otherwise pick first one
+            setTargetRole(prev => res.data.includes(prev) ? prev : res.data[0]);
+          } else {
+            // Fallback if DB is empty
+            setTargetRole("Software Engineer");
+          }
+        })
+        .catch(err => console.error("❌ Error fetching roles:", err));
+    }
+  }, [serverStatus]);
+
   // --- 2. HANDLERS ---
   const handleFileUpload = async (e) => {
     if (serverStatus !== 'ready') return alert("Waiting for server...");
-    
+
     const file = e.target.files[0];
     if (!file) return;
-    
+
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    
+
     try {
       const res = await axios.post(`${API_URL}/upload_resume`, formData);
       setResumeText(res.data.extracted_text);
@@ -142,7 +178,7 @@ useEffect(() => {
 
   const handleAnalyzeStream = async () => {
     if (!answer.trim()) return alert("Please type an answer.");
-    
+
     setLoading(true);
     setResult(null);
     setCurrentStep(1);
@@ -198,57 +234,68 @@ useEffect(() => {
   return (
     // 1. USE CUSTOM WRAPPER (Fixes the screen height to 100%)
     <div className="dashboard-container">
-      
+
       {/* 2. SIDEBAR (Uses custom class) */}
       <div className="sidebar p-4">
         <h4 className="fw-bold text-primary mb-4">Poly-to-Pro</h4>
-        
+
         {/* Status Badge */}
         <div className="mb-4">
           {serverStatus === 'ready' ? (
-             <div className="alert alert-success py-2 d-flex align-items-center small fw-bold">
-               <span className="me-2">●</span> System Online
-             </div>
+            <div className="alert alert-success py-2 d-flex align-items-center small fw-bold">
+              <span className="me-2">●</span> System Online
+            </div>
           ) : serverStatus === 'timeout' ? (
-             <div className="alert alert-danger py-2 small">
-               <div>Connection Failed</div>
-               <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p+1)}>Retry</button>
-             </div>
+            <div className="alert alert-danger py-2 small">
+              <div>Connection Failed</div>
+              <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p + 1)}>Retry</button>
+            </div>
           ) : (
-             <div className="alert alert-warning py-2 small">
-               <div className="spinner-border spinner-border-sm me-2"></div>
-               Waking up... ({elapsedTime}s)
-             </div>
+            <div className="alert alert-warning py-2 small">
+              <div className="spinner-border spinner-border-sm me-2"></div>
+              Waking up... ({elapsedTime}s)
+            </div>
           )}
         </div>
 
         {/* Inputs */}
         <div className="mb-3">
-          <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>TARGET ROLE</label>
-          <select className="form-select shadow-sm" value={targetRole} onChange={e => setTargetRole(e.target.value)}>
-            <option>Software Engineer</option>
-            <option>Data Analyst</option>
-            <option>Digital Marketer</option>
+          <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>TARGET ROLE</label>
+          <select
+            className="form-select shadow-sm"
+            value={targetRole}
+            onChange={e => setTargetRole(e.target.value)}
+            disabled={availableRoles.length === 0} // Disable if loading/empty
+          >
+            {availableRoles.length > 0 ? (
+              availableRoles.map((role, index) => (
+                <option key={index} value={role}>
+                  {role}
+                </option>
+              ))
+            ) : (
+              <option>Loading roles...</option>
+            )}
           </select>
         </div>
 
         <div className="mb-3">
-          <label className="small fw-bold text-muted" style={{fontSize: '11px'}}>RESUME</label>
+          <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME</label>
           <div className="card p-3 text-center bg-light border-dashed position-relative">
-            {uploading ? <span className="spinner-border spinner-border-sm text-primary"></span> : 
-             resumeName ? 
-              <div className="text-truncate">
-                <i className="bi bi-check-circle-fill text-success me-2"></i>
-                <span className="text-success fw-bold small">{resumeName}</span>
-              </div> : 
-             <div className="text-muted small"><i className="bi bi-cloud-upload me-2"></i>Upload PDF</div>
+            {uploading ? <span className="spinner-border spinner-border-sm text-primary"></span> :
+              resumeName ?
+                <div className="text-truncate">
+                  <i className="bi bi-check-circle-fill text-success me-2"></i>
+                  <span className="text-success fw-bold small">{resumeName}</span>
+                </div> :
+                <div className="text-muted small"><i className="bi bi-cloud-upload me-2"></i>Upload PDF</div>
             }
-            <input 
-              type="file" accept=".pdf" 
+            <input
+              type="file" accept=".pdf"
               disabled={serverStatus !== 'ready'}
               onChange={handleFileUpload}
               className="position-absolute w-100 h-100 start-0 top-0 opacity-0"
-              style={{cursor: 'pointer'}}
+              style={{ cursor: 'pointer' }}
             />
           </div>
         </div>
@@ -256,88 +303,88 @@ useEffect(() => {
 
       {/* 3. MAIN CONTENT (Uses custom class for scrolling) */}
       <div className="main-content">
-        <div className="container" style={{maxWidth: '900px'}}>
+        <div className="container" style={{ maxWidth: '900px' }}>
           {/* --- DEBUG BOX START --- */}
           <div className="alert alert-info">
-             <small>Debug Status: {serverStatus}</small><br/>
-             <small>Questions in Memory: {questionBank.length}</small>
-             <details>
-               <summary>View Raw Data</summary>
-               <pre>{JSON.stringify(questionBank, null, 2)}</pre>
-             </details>
+            <small>Debug Status: {serverStatus}</small><br />
+            <small>Questions in Memory: {questionBank.length}</small>
+            <details>
+              <summary>View Raw Data</summary>
+              <pre>{JSON.stringify(questionBank, null, 2)}</pre>
+            </details>
           </div>
           {/* --- DEBUG BOX END --- */}
-          
+
           <h1 className="display-6 fw-bold mb-4 text-dark">Mock Interview</h1>
-          
+
           <div className="mb-4">
-             <div className="card border-0 shadow-sm">
-               <div className="card-body p-2">
-                 
-                 {/* MODE A: DROPDOWN LIST */}
-                 {!isCustomQuestion ? (
-                   <select 
-                     className="form-select border-0 fw-bold text-secondary" 
-                     style={{fontSize: '1.1rem'}} 
-                     value={question} 
-                     onChange={(e) => {
-                       if (e.target.value === "CUSTOM_MODE") {
-                         setIsCustomQuestion(true);
-                         setQuestion(""); // Clear text for typing
-                       } else {
-                         setQuestion(e.target.value);
-                       }
-                     }}
-                   >
-                     {/* 1. Map questions from JSON/DB */}
-                     {questionBank.map((q, index) => (
-                       <option key={index} value={q.text}>
-                         {q.text}
-                       </option>
-                     ))}
-                     
-                     {/* 2. Divider & Custom Option */}
-                     <option disabled>──────────────────────────</option>
-                     <option value="CUSTOM_MODE">✎ Type a custom question...</option>
-                   </select>
-                 ) : (
-                   
-                   /* MODE B: TEXT INPUT (Back button included) */
-                   <div className="d-flex gap-2">
-                     <button 
-                       className="btn btn-light border text-muted"
-                       onClick={() => {
-                         setIsCustomQuestion(false);
-                         // Reset to first question in bank if exists
-                         if(questionBank.length > 0) setQuestion(questionBank[0].text);
-                       }}
-                       title="Back to list"
-                     >
-                       <i className="bi bi-arrow-left"></i>
-                     </button>
-                     <input 
-                       className="form-control border-0 fw-bold text-secondary" 
-                       placeholder="Type your interview question here..." 
-                       value={question} 
-                       autoFocus
-                       onChange={e => setQuestion(e.target.value)}
-                     />
-                   </div>
-                 )}
-               </div>
-             </div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body p-2">
+
+                {/* MODE A: DROPDOWN LIST */}
+                {!isCustomQuestion ? (
+                  <select
+                    className="form-select border-0 fw-bold text-secondary"
+                    style={{ fontSize: '1.1rem' }}
+                    value={question}
+                    onChange={(e) => {
+                      if (e.target.value === "CUSTOM_MODE") {
+                        setIsCustomQuestion(true);
+                        setQuestion(""); // Clear text for typing
+                      } else {
+                        setQuestion(e.target.value);
+                      }
+                    }}
+                  >
+                    {/* 1. Map questions from JSON/DB */}
+                    {questionBank.map((q, index) => (
+                      <option key={index} value={q.text}>
+                        {q.text}
+                      </option>
+                    ))}
+
+                    {/* 2. Divider & Custom Option */}
+                    <option disabled>──────────────────────────</option>
+                    <option value="CUSTOM_MODE">✎ Type a custom question...</option>
+                  </select>
+                ) : (
+
+                  /* MODE B: TEXT INPUT (Back button included) */
+                  <div className="d-flex gap-2">
+                    <button
+                      className="btn btn-light border text-muted"
+                      onClick={() => {
+                        setIsCustomQuestion(false);
+                        // Reset to first question in bank if exists
+                        if (questionBank.length > 0) setQuestion(questionBank[0].text);
+                      }}
+                      title="Back to list"
+                    >
+                      <i className="bi bi-arrow-left"></i>
+                    </button>
+                    <input
+                      className="form-control border-0 fw-bold text-secondary"
+                      placeholder="Type your interview question here..."
+                      value={question}
+                      autoFocus
+                      onChange={e => setQuestion(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="mb-4">
-            <textarea 
+            <textarea
               className="form-control p-4 shadow-sm" rows="6"
               placeholder="Type your answer here..."
-              style={{resize: 'none', borderRadius: '12px'}}
+              style={{ resize: 'none', borderRadius: '12px' }}
               value={answer} onChange={e => setAnswer(e.target.value)}
             ></textarea>
-            
+
             <div className="d-flex justify-content-end mt-3">
-              <button 
+              <button
                 className="btn btn-primary btn-lg px-5 rounded-pill shadow"
                 onClick={handleAnalyzeStream}
                 disabled={loading || serverStatus !== 'ready'}
@@ -350,8 +397,8 @@ useEffect(() => {
           {loading && <ThinkingTrace currentStep={currentStep} />}
 
           {result && !loading && (
-            <div className="row g-4 pb-5"> 
-              
+            <div className="row g-4 pb-5">
+
               {/* 1. MANAGER GAPS (Red) */}
               <div className="col-12">
                 <div className="card card-modern h-100">
