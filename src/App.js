@@ -97,6 +97,40 @@ export default function App() {
   }, [serverStatus]);
 
   // FETCH QUESTIONS ON LOAD
+
+  useEffect(() => {
+    if (serverStatus === 'ready') {
+      console.log("🚀 Fetching initial data (Questions & Roles)...");
+
+      // A. Fetch Questions
+      axios.get(`${API_URL}/questions`)
+        .then(res => {
+          setQuestionBank(res.data);
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setQuestion(res.data[0].text);
+          }
+        })
+        .catch(err => console.error("❌ Error fetching questions:", err));
+
+      // B. Fetch Roles (NEW)
+      axios.get(`${API_URL}/roles`)
+        .then(res => {
+          console.log("✅ Roles received:", res.data);
+          setAvailableRoles(res.data);
+
+          // Set default role if list is not empty
+          if (res.data.length > 0) {
+            // Keep existing selection if valid, otherwise pick first one
+            setTargetRole(prev => res.data.includes(prev) ? prev : res.data[0]);
+          } else {
+            // Fallback if DB is empty
+            setTargetRole("Software Engineer");
+          }
+        })
+        .catch(err => console.error("❌ Error fetching roles:", err));
+    }
+  }, [serverStatus]);
+
   useEffect(() => {
     // Only run if we have BOTH a resume text and a selected role
     if (serverStatus === 'ready' && resumeText && targetRole) {
