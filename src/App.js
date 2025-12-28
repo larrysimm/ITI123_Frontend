@@ -146,7 +146,7 @@ export default function App() {
           setIsAnalyzingProfile(false);
         });
     }
-  }, [resumeText, targetRole, serverStatus]);
+  }, [targetRole, serverStatus]);
 
   // --- 2. HANDLERS ---
   const handleFileUpload = async (e) => {
