@@ -146,6 +146,7 @@ export default function App() {
           setIsAnalyzingProfile(false);
         });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetRole, serverStatus]);
 
   // --- 2. HANDLERS ---
