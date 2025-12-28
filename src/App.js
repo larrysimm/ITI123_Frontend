@@ -383,53 +383,92 @@ export default function App() {
     <div className="dashboard-container">
 
       {/* SIDEBAR (Always Visible) */}
-      <div className="sidebar p-4">
-        <div className="mb-4 d-flex align-items-center gap-2">
-          <img src={logo} alt="App Logo" style={{ height: '32px' }} />
-          <h5 className="fw-bold text-primary m-0">Poly-2-Pro</h5>
-        </div>
+      <div className="sidebar p-4" style={{ height: '100vh', overflowY: 'auto' }}>
+        
+        {/* 1. STICKY HEADER WRAPPER 
+            This div holds everything you want to stay fixed at the top.
+        */}
+        <div 
+          className="sticky-top" 
+          style={{ 
+            top: 0, 
+            zIndex: 100,
+            backgroundColor: '#f8f9fa', // Matches your app background
+            // Negative margins counteract the parent padding so the sticky bg goes edge-to-edge
+            margin: '-1.5rem -1.5rem 0 -1.5rem', 
+            padding: '1.5rem 1.5rem 0.5rem 1.5rem',
+            borderBottom: '1px solid rgba(0,0,0,0.05)'
+          }}
+        >
+          {/* A. Logo & Title */}
+          <div className="mb-4 d-flex align-items-center gap-2">
+            <img src={logo} alt="App Logo" style={{ height: '32px' }} />
+            <h5 className="fw-bold text-primary m-0">Poly-2-Pro</h5>
+          </div>
 
-        {/* Status Badge */}
-        <div className="mb-4">
-          {serverStatus === 'ready' ? (
-            <div className="alert alert-success py-2 d-flex align-items-center small fw-bold">
-              <span className="me-2">●</span> System Online
-            </div>
-          ) : serverStatus === 'timeout' ? (
-            <div className="alert alert-danger py-2 small">
-              <div>Connection Failed</div>
-              <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p + 1)}>Retry</button>
-            </div>
-          ) : (
-            <div className="alert alert-warning py-2 small">
-              <div className="spinner-border spinner-border-sm me-2"></div>
-              Waking up... ({elapsedTime}s)
-            </div>
-          )}
-        </div>
-
-        {/* Inputs */}
-        <div className="mb-3">
-          <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>TARGET ROLE</label>
-          <select
-            className="form-select shadow-sm"
-            value={targetRole}
-            onChange={e => setTargetRole(e.target.value)}
-            disabled={availableRoles.length === 0}
-          >
-            {availableRoles.length > 0 ? (
-              availableRoles.map((role, index) => (
-                <option key={index} value={role}>{role}</option>
-              ))
+          {/* B. System Status */}
+          <div className="mb-4">
+            {serverStatus === 'ready' ? (
+              <div className="alert alert-success py-2 d-flex align-items-center small fw-bold mb-0">
+                <span className="me-2">●</span> System Online
+              </div>
+            ) : serverStatus === 'timeout' ? (
+              <div className="alert alert-danger py-2 small mb-0">
+                <div>Connection Failed</div>
+                <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => setRetryTrigger(p => p + 1)}>Retry</button>
+              </div>
             ) : (
-              <option>Loading roles...</option>
+              <div className="alert alert-warning py-2 small mb-0">
+                <div className="spinner-border spinner-border-sm me-2"></div>
+                Waking up... ({elapsedTime}s)
+              </div>
             )}
-          </select>
-        </div>
+          </div>
 
-        {/* --- DYNAMIC SKILLS MATCHING SIDEBAR (Replaces old Resume Status) --- */}
-        {resumeName ? (
-          <div className="mb-3 animate__animated animate__fadeIn">
+          {/* C. Target Role Input */}
+          <div className="mb-3">
+            <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>TARGET ROLE</label>
+            <select
+              className="form-select shadow-sm"
+              value={targetRole}
+              onChange={e => setTargetRole(e.target.value)}
+              disabled={availableRoles.length === 0}
+            >
+              {availableRoles.length > 0 ? (
+                availableRoles.map((role, index) => (
+                  <option key={index} value={role}>{role}</option>
+                ))
+              ) : (
+                <option>Loading roles...</option>
+              )}
+            </select>
+          </div>
+
+          {/* D. Resume Status (Moved UP here) */}
+          <div className="mb-3">
+            <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME STATUS</label>
+            {resumeName ? (
+              <div className="p-2 bg-white text-success rounded small border d-flex align-items-center justify-content-between shadow-sm animate__animated animate__fadeIn">
+                <span className="text-truncate" style={{ maxWidth: '200px' }}>
+                  <i className="bi bi-file-earmark-pdf-fill me-2"></i>{resumeName}
+                </span>
+                <i className="bi bi-check-circle-fill"></i>
+              </div>
+            ) : (
+              <div className="p-2 bg-light text-muted rounded small border border-dashed">
+                Waiting for upload...
+              </div>
+            )}
+          </div>
+        </div>
+        {/* --- END STICKY HEADER --- */}
+
+
+        {/* 2. SCROLLABLE CONTENT (Skill Analysis) 
+            This sits normally in the DOM flow, so it scrolls underneath the sticky header.
+        */}
+        {resumeName && (
+          <div className="mt-4 animate__animated animate__fadeIn pb-5"> {/* pb-5 adds space at bottom for scrolling */}
             <label className="small fw-bold text-muted mb-2" style={{ fontSize: '11px' }}>
               SKILL GAP ANALYSIS
             </label>
@@ -437,7 +476,7 @@ export default function App() {
             <div className="card bg-white border shadow-sm">
               <div className="card-body p-3">
 
-                {/* 1. Loading State */}
+                {/* Loading State */}
                 {isAnalyzingProfile && (
                   <div className="text-center py-3">
                     <div className="spinner-border spinner-border-sm text-primary mb-2"></div>
@@ -445,7 +484,7 @@ export default function App() {
                   </div>
                 )}
 
-                {/* 2. Results Display */}
+                {/* Results Display */}
                 {!isAnalyzingProfile && skillAnalysis && (
                   <>
                     <div className="mb-3 pb-2 border-bottom">
@@ -454,6 +493,7 @@ export default function App() {
                       </small>
                     </div>
 
+                    {/* Matched Skills */}
                     {skillAnalysis.matched.length > 0 && (
                       <div className="mb-3">
                         <h6 className="small fw-bold text-success mb-2">
@@ -461,10 +501,9 @@ export default function App() {
                         </h6>
                         <ul className="list-unstyled mb-0 ps-1">
                           {skillAnalysis.matched.map((item, i) => {
-                            // Handle old string format vs new object format
                             const skillName = typeof item === 'string' ? item : item.skill;
                             const reason = typeof item === 'string' ? '' : item.reason;
-                            const code = item.code || ""; // <--- NEW FIELD
+                            const code = item.code || ""; 
 
                             return (
                               <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
@@ -484,7 +523,7 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* MISSING Skills (Red) */}
+                    {/* Missing Skills */}
                     {skillAnalysis.missing.length > 0 && (
                       <div>
                         <h6 className="small fw-bold text-danger mb-2">
@@ -492,10 +531,9 @@ export default function App() {
                         </h6>
                         <ul className="list-unstyled mb-0 ps-1">
                           {skillAnalysis.missing.map((item, i) => {
-                            // Handle old string format vs new object format
                             const skillName = typeof item === 'string' ? item : item.skill;
                             const gap = typeof item === 'string' ? '' : item.gap;
-                            const code = item.code || ""; // <--- NEW FIELD
+                            const code = item.code || ""; 
 
                             return (
                               <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
@@ -517,19 +555,6 @@ export default function App() {
                   </>
                 )}
               </div>
-            </div>
-
-            <div className="mt-2 text-end">
-              <span className="badge bg-light text-secondary border fw-normal">
-                <i className="bi bi-file-earmark-pdf me-1"></i> {resumeName}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-3">
-            <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME STATUS</label>
-            <div className="p-2 bg-light text-muted rounded small border border-dashed">
-              Waiting for upload...
             </div>
           </div>
         )}
