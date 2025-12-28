@@ -271,11 +271,10 @@ export default function App() {
   const formatStarResponse = (text) => {
     if (!text) return null;
 
-    // 1. Split by the keywords
     return text.split(/(Situation:|Task:|Action:|Result:)/g).map((part, index) => {
       const trimmed = part.trim();
 
-      // 2. If it's a Keyword -> Render as Green Bold Header
+      // 1. Headings (Situation, Task, etc.)
       if (['Situation:', 'Task:', 'Action:', 'Result:'].includes(trimmed)) {
         return (
           <span key={index} className="d-block fw-bold text-success mt-3 mb-1">
@@ -284,13 +283,20 @@ export default function App() {
         );
       }
 
-      // 3. If it's Content -> Render with ReactMarkdown (to support **Bold**)
+      // 2. Content with Markdown support
       return (
         <span key={index}>
           <ReactMarkdown
             components={{
-              // Override paragraph to span so it fits nicely in the card
-              p: ({ node, ...props }) => <span {...props} />
+              // Force paragraph -> span to keep layout clean
+              p: ({ node, ...props }) => <span {...props} />,
+
+              // FORCE BOLD: explicit Bootstrap class
+              strong: ({ node, ...props }) => <span className="fw-bold text-dark" {...props} />,
+
+              // Handle lists if your response has bullet points
+              ul: ({ node, ...props }) => <ul className="mb-0 ps-3" {...props} />,
+              li: ({ node, ...props }) => <li className="mb-1" {...props} />
             }}
           >
             {part}
@@ -704,7 +710,7 @@ export default function App() {
                       bgClass="bg-warning-subtle"
                       textClass="text-warning-emphasis"
                       borderClass="border-warning-subtle"
-                      defaultOpen={false} // Maybe keep this closed by default to save space?
+                      defaultOpen={true}
                     >
                       <div className="markdown-body text-secondary">
                         <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
