@@ -291,15 +291,28 @@ export default function App() {
     });
   };
 
-  // 2. Main formatter function
+  // Helper to format STAR text
   const formatStarResponse = (text) => {
     if (!text) return null;
 
-    // Split by the STAR keywords
-    return text.split(/(Situation:|Task:|Action:|Result:)/g).map((part, index) => {
+    // 1. CLEANUP: Remove asterisks specifically from the headers
+    // Transforms "**Situation:**" -> "Situation:"
+    let cleanText = text
+      .replace(/\*\*Situation:?\*\*/g, 'Situation:')
+      .replace(/\*\*Task:?\*\*/g, 'Task:')
+      .replace(/\*\*Action:?\*\*/g, 'Action:')
+      .replace(/\*\*Result:?\*\*/g, 'Result:')
+      // Also catch cases where AI forgets the colon inside the bold
+      .replace(/\*\*Situation\*\*:?/g, 'Situation:')
+      .replace(/\*\*Task\*\*:?/g, 'Task:')
+      .replace(/\*\*Action\*\*:?/g, 'Action:')
+      .replace(/\*\*Result\*\*:?/g, 'Result:');
+
+    // 2. SPLIT & RENDER
+    return cleanText.split(/(Situation:|Task:|Action:|Result:)/g).map((part, index) => {
       const trimmed = part.trim();
 
-      // Header handling
+      // A. Header (Green & Bold)
       if (['Situation:', 'Task:', 'Action:', 'Result:'].includes(trimmed)) {
         return (
           <div key={index} className="fw-bold text-success mt-3 mb-1 text-uppercase" style={{ letterSpacing: '0.5px' }}>
@@ -308,10 +321,10 @@ export default function App() {
         );
       }
 
-      // Skip empty sections
+      // B. Empty strings
       if (!trimmed) return null;
 
-      // Body handling: Use our manual bold function instead of ReactMarkdown
+      // C. Body Text (with manual bold support)
       return (
         <div key={index} className="mb-2 text-dark" style={{ lineHeight: '1.6' }}>
           {renderWithManualBold(part)}
