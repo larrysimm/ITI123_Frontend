@@ -651,11 +651,24 @@ export default function App() {
             /* --- MAIN INTERFACE (Resume Exists) --- */
             <>
               <div className="d-flex align-items-center justify-content-between mb-4">
-                <div>
-                  <img src={logo} alt="App Logo" style={{ height: '60px' }} />
-                  <h1 className="display-6 fw-bold text-dark m-0">Interview Architect</h1>
-                  <small className="text-muted">Optimizing answers for <strong>{targetRole}</strong></small>
-                </div>
+                  <div className="d-flex align-items-center">
+
+                    {/* Logo with margin-end (me-3) for spacing */}
+                    <img
+                      src={logo}
+                      alt="App Logo"
+                      style={{ height: '60px' }}
+                      className="me-3"
+                    />
+
+                    {/* Text Wrapper: Keeps Title and Subtitle stacked vertically */}
+                    <div>
+                      <h1 className="display-6 fw-bold text-dark m-0">Interview Architect</h1>
+                      <small className="text-muted">
+                        Optimizing answers for <strong>{targetRole}</strong>
+                      </small>
+                    </div>
+                  </div>
                 <button onClick={() => { setResumeName(""); setResumeText("") }} className="btn btn-sm btn-outline-secondary">
                   <i className="bi bi-arrow-counterclockwise me-1"></i> Change Resume
                 </button>
