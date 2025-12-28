@@ -267,15 +267,35 @@ export default function App() {
     }
   };
 
-  // Helper to format STAR text + Fix Bold Issues
+  // 1. Helper function to find **text** and turn it into <b>text</b>
+  const renderWithManualBold = (text) => {
+    // Split the string whenever we see **something**
+    // The regex captures the text inside the asterisks
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+
+    return parts.map((part, index) => {
+      // Odd indices (1, 3, 5...) are the text that was inside ** **
+      if (index % 2 === 1) {
+        return (
+          <span key={index} style={{ fontWeight: '800', color: 'black' }}>
+            {part}
+          </span>
+        );
+      }
+      // Even indices are normal text
+      return <span key={index}>{part}</span>;
+    });
+  };
+
+  // 2. Main formatter function
   const formatStarResponse = (text) => {
     if (!text) return null;
 
-    // Split the text by the 4 keywords
+    // Split by the STAR keywords
     return text.split(/(Situation:|Task:|Action:|Result:)/g).map((part, index) => {
       const trimmed = part.trim();
 
-      // 1. If it is a Heading (Situation, Task, etc.) -> Green & Bold
+      // Header handling
       if (['Situation:', 'Task:', 'Action:', 'Result:'].includes(trimmed)) {
         return (
           <div key={index} className="fw-bold text-success mt-3 mb-1 text-uppercase" style={{ letterSpacing: '0.5px' }}>
@@ -284,28 +304,18 @@ export default function App() {
         );
       }
 
-      // 2. If it is Body Text -> Render Markdown with FORCED BOLD styling
-      return (
-        <div key={index} className="mb-1">
-          <ReactMarkdown 
-            components={{ 
-              // Override the 'p' tag to prevent extra spacing issues
-              p: ({node, ...props}) => <span {...props} />,
+      // Skip empty sections
+      if (!trimmed) return null;
 
-              // FORCE BOLD: We replace <strong> with a <b> tag and inline styles
-              strong: ({node, ...props}) => (
-                <span style={{ fontWeight: '700', color: 'black' }}>
-                  {props.children}
-                </span>
-              )
-            }}
-          >
-            {part}
-          </ReactMarkdown>
+      // Body handling: Use our manual bold function instead of ReactMarkdown
+      return (
+        <div key={index} className="mb-2 text-dark" style={{ lineHeight: '1.6' }}>
+          {renderWithManualBold(part)}
         </div>
       );
     });
   };
+  
   // Reusable Collapsible Card
   const CollapsibleCard = ({
     title,
