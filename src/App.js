@@ -247,6 +247,10 @@ export default function App() {
               if (data.type === "step") {
                 setCurrentStep(data.step_id);
               }
+              else if (data.type === "partial_update") {
+                // Merges the new "manager_thinking" into the existing result object
+                setResult((prev) => ({ ...prev, ...data.data }));
+              }
               else if (data.type === "result") {
                 setResult(data.data);
                 setLoading(false);
@@ -315,7 +319,7 @@ export default function App() {
       );
     });
   };
-  
+
   // Reusable Collapsible Card
   const CollapsibleCard = ({
     title,
@@ -691,7 +695,12 @@ export default function App() {
                 </div>
               </div>
 
-              {loading && <ThinkingTrace currentStep={currentStep} />}
+              {loading && (
+                <ThinkingTrace 
+                  currentStep={currentStep} 
+                  managerThinking={result?.manager_thinking} 
+                />
+              )}
 
               {result && !loading && (
                 <div className="row g-4 pb-5">
