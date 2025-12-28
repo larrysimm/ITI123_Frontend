@@ -1,39 +1,68 @@
 import React, { useState, useEffect } from 'react';
 
-export default function ThinkingTrace({ currentStep, managerThinking }) {
-  // 1. Controls whether the main list of steps is visible
+// 1. Add coachThinking to props
+export default function ThinkingTrace({ currentStep, managerThinking, coachThinking }) {
   const [showDetails, setShowDetails] = useState(true);
   
-  // 2. Controls the inner "Manager Logic" text (nested toggle)
-  const [expandThinking, setExpandThinking] = useState(false);
+  // 2. Separate toggles for Manager and Coach
+  const [expandManager, setExpandManager] = useState(false);
+  const [expandCoach, setExpandCoach] = useState(false);
 
-  // 3. Auto-collapse the WHOLE card when analysis is complete (Step 100)
   useEffect(() => {
     if (currentStep === 100) {
       setShowDetails(false);
     } else {
-      setShowDetails(true); // Keep open while working
+      setShowDetails(true);
     }
   }, [currentStep]);
 
   const steps = [
     { id: 1, text: "Extracting Role & Skill Data..." },
     { id: 2, text: "Manager: Proficiency Analysis..." },
-    { id: 3, text: "Coach: Structure Refinement..." },
+    { id: 3, text: "Coach: Structure Refinement..." }, // Coach is Step 3
     { id: 4, text: "Finalizing Architected Answer..." }
   ];
+
+  // Helper to render the collapsible logic box
+  const renderLogicBox = (thinkingText, isExpanded, toggleFunc) => (
+    <div className="ms-5 mt-2 fade-in">
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleFunc(!isExpanded);
+        }}
+        className="btn btn-sm btn-light border-0 text-secondary d-flex align-items-center px-0"
+        style={{ fontSize: '0.8rem' }}
+      >
+        <i className={`bi bi-chevron-${isExpanded ? 'down' : 'right'} me-1`}></i>
+        {isExpanded ? "Hide Agent Logic" : "View Agent Logic"}
+      </button>
+      
+      {isExpanded && (
+        <div className="card bg-white border mt-1 shadow-sm">
+          <div className="card-body p-2 bg-dark-subtle rounded">
+            <pre className="mb-0 text-dark-emphasis" style={{ 
+              whiteSpace: 'pre-wrap', 
+              fontSize: '0.75rem', 
+              fontFamily: 'monospace' 
+            }}>
+              {thinkingText}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="card card-modern border-0 mb-4 fade-in bg-light">
       <div className="card-body p-4">
         
-        {/* --- HEADER (Always Visible & Clickable) --- */}
         <div 
           className={`d-flex align-items-center justify-content-between ${showDetails ? 'mb-4' : 'mb-0'}`}
           onClick={() => setShowDetails(!showDetails)}
           style={{ cursor: 'pointer' }}
         >
-          {/* Left: Status Indicator */}
           <div className="d-flex align-items-center">
             {currentStep < 100 ? (
                <>
@@ -47,15 +76,12 @@ export default function ThinkingTrace({ currentStep, managerThinking }) {
                </>
             )}
           </div>
-
-          {/* Right: Toggle Button */}
           <div className="text-secondary small fw-medium d-flex align-items-center">
             {showDetails ? "Hide Process" : "Show Details"}
             <i className={`bi bi-chevron-${showDetails ? 'up' : 'down'} ms-2`}></i>
           </div>
         </div>
 
-        {/* --- BODY (Collapsible Steps) --- */}
         {showDetails && (
           <div className="d-flex flex-column gap-3 fade-in">
             {steps.map((step) => {
@@ -65,8 +91,6 @@ export default function ThinkingTrace({ currentStep, managerThinking }) {
 
               return (
                 <div key={step.id} className="d-flex flex-column transition-all">
-                  
-                  {/* Step Row */}
                   <div className="d-flex align-items-center">
                     <div className="me-3" style={{width: '24px'}}>
                       {status === 'completed' && <i className="bi bi-check-circle-fill text-success fs-5 fade-in"></i>}
@@ -81,43 +105,17 @@ export default function ThinkingTrace({ currentStep, managerThinking }) {
                     </span>
                   </div>
 
-                  {/* Nested Manager Logic (Only for Step 2) */}
-                  {step.id === 2 && managerThinking && (
-                    <div className="ms-5 mt-2 fade-in">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent closing the main card
-                          setExpandThinking(!expandThinking);
-                        }}
-                        className="btn btn-sm btn-light border-0 text-secondary d-flex align-items-center px-0"
-                        style={{ fontSize: '0.8rem' }}
-                      >
-                        <i className={`bi bi-chevron-${expandThinking ? 'down' : 'right'} me-1`}></i>
-                        {expandThinking ? "Hide Manager Logic" : "View Manager Logic"}
-                      </button>
-                      
-                      {expandThinking && (
-                        <div className="card bg-white border mt-1 shadow-sm">
-                          <div className="card-body p-2 bg-dark-subtle rounded">
-                            <pre className="mb-0 text-dark-emphasis" style={{ 
-                              whiteSpace: 'pre-wrap', 
-                              fontSize: '0.75rem', 
-                              fontFamily: 'monospace' 
-                            }}>
-                              {managerThinking}
-                            </pre>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* 🔹 Render Manager Logic (Step 2) */}
+                  {step.id === 2 && managerThinking && renderLogicBox(managerThinking, expandManager, setExpandManager)}
+
+                  {/* 🔹 Render Coach Logic (Step 3) */}
+                  {step.id === 3 && coachThinking && renderLogicBox(coachThinking, expandCoach, setExpandCoach)}
                   
                 </div>
               );
             })}
           </div>
         )}
-
       </div>
     </div>
   );

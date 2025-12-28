@@ -701,6 +701,7 @@ export default function App() {
                   // If loading is done, force step to 100 so all items show as "Checked/Completed"
                   currentStep={loading ? currentStep : 100} 
                   managerThinking={result?.manager_thinking} 
+                  coachThinking={result?.coach_thinking}
                 />
               )}
 
