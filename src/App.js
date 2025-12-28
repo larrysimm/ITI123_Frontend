@@ -216,7 +216,8 @@ export default function App() {
           resume_text: resumeText,
           target_role: targetRole,
           question: question,
-          student_answer: answer
+          student_answer: answer,
+          skill_data: skillAnalysis
         })
       });
 
