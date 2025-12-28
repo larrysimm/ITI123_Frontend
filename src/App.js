@@ -98,34 +98,6 @@ export default function App() {
 
   // FETCH QUESTIONS ON LOAD
   useEffect(() => {
-    // Only run if we think the server is ready (or bypass check)
-    if (serverStatus === 'ready') {
-      console.log("🚀 React is asking for questions...");
-
-      axios.get(`${API_URL}/questions`)
-        .then(res => {
-          console.log("✅ DATA RECEIVED IN REACT:", res.data); // Look for this in Console
-
-          // 1. Force the data into the state
-          setQuestionBank(res.data);
-
-          // 2. Select the first question immediately
-          if (Array.isArray(res.data) && res.data.length > 0) {
-            setQuestion(res.data[0].text);
-          } else {
-            console.error("⚠️ Data format is wrong. Expected Array, got:", typeof res.data);
-          }
-        })
-        .catch(err => {
-          console.error("❌ React Fetch Error:", err);
-          alert("Error fetching data. Check Console.");
-        });
-    }
-  }, [serverStatus]);
-
-  // ... replace the existing "FETCH QUESTIONS ON LOAD" useEffect with this ...
-
-  useEffect(() => {
     if (serverStatus === 'ready') {
       console.log("🚀 Fetching initial data (Questions & Roles)...");
 
