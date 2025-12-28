@@ -289,6 +289,51 @@ export default function App() {
     });
   };
 
+  // Reusable Collapsible Card
+  const CollapsibleCard = ({
+    title,
+    icon,
+    bgClass,      // e.g., 'bg-danger-subtle'
+    textClass,    // e.g., 'text-danger-emphasis'
+    borderClass,  // e.g., 'border-danger-subtle'
+    children,
+    defaultOpen = true
+  }) => {
+    const [isOpen, setIsOpen] = React.useState(defaultOpen);
+
+    return (
+      <div className={`card card-modern h-100 ${borderClass} mb-4`}>
+        {/* Header - Clickable */}
+        <div
+          className={`card-header ${bgClass} border-0 py-3 d-flex align-items-center justify-content-between`}
+          onClick={() => setIsOpen(!isOpen)}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="d-flex align-items-center">
+            <i className={`bi ${icon} ${textClass} fs-5 me-3`}></i>
+            <h6 className={`mb-0 fw-bold ${textClass}`}>{title}</h6>
+          </div>
+
+          {/* Chevron Icon */}
+          <i
+            className={`bi bi-chevron-down ${textClass} transition-transform`}
+            style={{
+              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.3s'
+            }}
+          ></i>
+        </div>
+
+        {/* Body - Toggles Visibility */}
+        {isOpen && (
+          <div className="card-body p-4 bg-white fade-in">
+            {children}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // --- 3. RENDER ---
   return (
     <div className="dashboard-container">
@@ -590,8 +635,8 @@ export default function App() {
                     disabled={isValidateDisabled || loading}
                     // 2. VISUAL FEEDBACK (Bootstrap classes)
                     className={`btn w-100 py-3 fw-bold shadow-sm transition-all ${isValidateDisabled
-                        ? 'btn-secondary opacity-50 cursor-not-allowed'
-                        : 'btn-primary'
+                      ? 'btn-secondary opacity-50 cursor-not-allowed'
+                      : 'btn-primary'
                       }`}
                     style={{ borderRadius: '12px' }}
                   >
@@ -623,53 +668,58 @@ export default function App() {
 
               {result && !loading && (
                 <div className="row g-4 pb-5">
-                  {/* Manager Gaps */}
+
+                  {/* 1. Manager's Gaps (Red/Danger Theme) */}
                   <div className="col-12">
-                    <div className="card card-modern h-100">
-                      <div className="card-header bg-danger-subtle border-0 py-3 d-flex align-items-center">
-                        <i className="bi bi-exclamation-octagon-fill text-danger fs-5 me-3"></i>
-                        <h6 className="mb-0 fw-bold text-danger-emphasis">Manager's Gaps</h6>
-                      </div>
-                      <div className="card-body p-4 markdown-body text-secondary">
+                    <CollapsibleCard
+                      title="Manager's Gaps"
+                      icon="bi-exclamation-octagon-fill"
+                      bgClass="bg-danger-subtle"
+                      textClass="text-danger-emphasis"
+                      borderClass="border-danger-subtle"
+                      defaultOpen={true}
+                    >
+                      <div className="markdown-body text-secondary">
                         <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
                       </div>
-                    </div>
+                    </CollapsibleCard>
                   </div>
 
-                  {/* Coach Critique */}
+                  {/* 2. Structure Critique (Yellow/Warning Theme) */}
                   <div className="col-12">
-                    <div className="card card-modern h-100">
-                      <div className="card-header bg-warning-subtle border-0 py-3 d-flex align-items-center">
-                        <i className="bi bi-lightbulb-fill text-warning-emphasis fs-5 me-3"></i>
-                        <h6 className="mb-0 fw-bold text-warning-emphasis">Structure Critique</h6>
-                      </div>
-                      <div className="card-body p-4 markdown-body text-secondary">
+                    <CollapsibleCard
+                      title="Structure Critique"
+                      icon="bi-lightbulb-fill"
+                      bgClass="bg-warning-subtle"
+                      textClass="text-warning-emphasis"
+                      borderClass="border-warning-subtle"
+                      defaultOpen={false} // Maybe keep this closed by default to save space?
+                    >
+                      <div className="markdown-body text-secondary">
                         <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
                       </div>
-                    </div>
+                    </CollapsibleCard>
                   </div>
 
-                  {/* Architected Response Card */}
+                  {/* 3. Architected Response (Green/Success Theme) */}
                   <div className="col-12">
-                    <div className="card card-modern h-100 border-success-subtle">
-                      {/* Header: Light Green */}
-                      <div className="card-header bg-success-subtle border-0 py-3 d-flex align-items-center">
-                        <i className="bi bi-patch-check-fill text-success-emphasis fs-5 me-3"></i>
-                        <h6 className="mb-0 fw-bold text-success-emphasis">Architected Response</h6>
+                    <CollapsibleCard
+                      title="Architected Response"
+                      icon="bi-patch-check-fill"
+                      bgClass="bg-success-subtle"
+                      textClass="text-success-emphasis"
+                      borderClass="border-success-subtle"
+                      defaultOpen={true}
+                    >
+                      <div className="card-text text-dark" style={{ lineHeight: '1.7', fontSize: '1.05rem' }}>
+                        {formatStarResponse(result.rewritten_answer)}
                       </div>
-                      {/* Body: Formatted Text */}
-                      <div className="card-body p-4 bg-white">
-                        <div className="card-text text-dark" style={{ lineHeight: '1.7', fontSize: '1.05rem' }}>
-                          {formatStarResponse(result.rewritten_answer)}
-                        </div>
-                      </div>
-                    </div>
+                    </CollapsibleCard>
                   </div>
                 </div>
               )}
             </>
           )}
-
         </div>
       </div>
     </div>
