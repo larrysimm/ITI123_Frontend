@@ -404,8 +404,17 @@ export default function App() {
             
             {/* A. Logo & Title */}
             <div className="mb-4 d-flex align-items-center gap-2">
-              <img src={logo} alt="App Logo" style={{ height: '32px' }} />
-              <h5 className="fw-bold text-primary m-0">Poly-2-Pro</h5>
+              <img src={logo} alt="App Logo" style={{ height: '48px' }} />
+              {/* 2. NEW FONT COLOR */}
+              <h4 
+                className="fw-bold m-0" 
+                style={{ 
+                  color: '#4a148c', /* Deep Purple (Change this hex code to any color you want) */
+                  letterSpacing: '-0.5px'
+                }}
+                >
+                  Poly-2-Pro
+              </h4>
             </div>
 
             {/* B. System Status */}
