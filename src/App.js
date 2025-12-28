@@ -99,7 +99,6 @@ export default function App() {
   // FETCH QUESTIONS ON LOAD
   useEffect(() => {
     if (serverStatus === 'ready') {
-      console.log("🚀 Fetching initial data (Questions & Roles)...");
 
       // A. Fetch Questions
       axios.get(`${API_URL}/questions`)
@@ -114,7 +113,6 @@ export default function App() {
       // B. Fetch Roles (NEW)
       axios.get(`${API_URL}/roles`)
         .then(res => {
-          console.log("✅ Roles received:", res.data);
           setAvailableRoles(res.data);
 
           // Set default role if list is not empty
@@ -158,15 +156,30 @@ export default function App() {
     if (!file) return;
 
     setUploading(true);
+    // Clear previous results while uploading
+    setSkillAnalysis(null); 
+    
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("target_role", targetRole); // Send role immediately!
 
     try {
-      const res = await axios.post(`${API_URL}/upload_resume`, formData);
-      setResumeText(res.data.extracted_text);
+      // OPTIMIZATION: Use the single endpoint that does both Text + Analysis
+      // Ensure your backend has the /analyze_resume endpoint we created earlier.
+      const res = await axios.post(`${API_URL}/analyze_resume`, formData);
+      
+      // 1. Update Resume Data
+      setResumeText(res.data.text);
       setResumeName(res.data.filename);
+
+      // 2. Update Analysis immediately (skip the useEffect wait)
+      if (res.data.analysis) {
+        setSkillAnalysis(res.data.analysis);
+      }
+      
     } catch (err) {
-      alert("Upload failed.");
+      console.error(err);
+      alert("Upload or Analysis failed.");
     } finally {
       setUploading(false);
     }
