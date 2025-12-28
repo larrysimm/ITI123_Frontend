@@ -384,7 +384,12 @@ export default function App() {
 
       {/* SIDEBAR (Always Visible) */}
       {/* 1. REMOVE p-4 from here so the sticky header hits the true top edge */}
-      <div className="sidebar" style={{ height: '100vh', overflowY: 'auto' }}>
+      <div className="sidebar" style={{ 
+          height: '100vh', 
+          overflowY: 'auto',
+          backgroundColor: '#f8f9fa'
+          }}
+      >
         
         {/* 2. STICKY HEADER 
             - Added p-4 here instead to restore spacing.
@@ -459,7 +464,7 @@ export default function App() {
             <div>
               <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME STATUS</label>
               {resumeName ? (
-                <div className="p-2 text-success rounded small border d-flex align-items-center justify-content-between shadow-sm animate__animated animate__fadeIn">
+                <div className="p-2 bg-white text-success rounded small border d-flex align-items-center justify-content-between shadow-sm animate__animated animate__fadeIn">
                   <span className="text-truncate" style={{ maxWidth: '200px' }}>
                     <i className="bi bi-file-earmark-pdf-fill me-2"></i>{resumeName}
                   </span>
