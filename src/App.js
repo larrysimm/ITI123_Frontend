@@ -695,9 +695,11 @@ export default function App() {
                 </div>
               </div>
 
-              {loading && (
+              {/* SHOW TRACE: While loading OR if we have a finished trace */}
+              {(loading || result?.manager_thinking) && (
                 <ThinkingTrace 
-                  currentStep={currentStep} 
+                  // If loading is done, force step to 100 so all items show as "Checked/Completed"
+                  currentStep={loading ? currentStep : 100} 
                   managerThinking={result?.manager_thinking} 
                 />
               )}
