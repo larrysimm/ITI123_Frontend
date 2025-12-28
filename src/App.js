@@ -267,45 +267,45 @@ export default function App() {
     }
   };
 
-  // Helper to format STAR text (Situation, Task, Action, Result) + Render Markdown
+  // Helper to format STAR text + Fix Bold Issues
   const formatStarResponse = (text) => {
     if (!text) return null;
 
+    // Split the text by the 4 keywords
     return text.split(/(Situation:|Task:|Action:|Result:)/g).map((part, index) => {
       const trimmed = part.trim();
 
-      // 1. Headings (Situation, Task, etc.)
+      // 1. If it is a Heading (Situation, Task, etc.) -> Green & Bold
       if (['Situation:', 'Task:', 'Action:', 'Result:'].includes(trimmed)) {
         return (
-          <span key={index} className="d-block fw-bold text-success mt-3 mb-1">
+          <div key={index} className="fw-bold text-success mt-3 mb-1 text-uppercase" style={{ letterSpacing: '0.5px' }}>
             {trimmed}
-          </span>
+          </div>
         );
       }
 
-      // 2. Content with Markdown support
+      // 2. If it is Body Text -> Render Markdown with FORCED BOLD styling
       return (
-        <span key={index}>
-          <ReactMarkdown
-            components={{
-              // Force paragraph -> span to keep layout clean
-              p: ({ node, ...props }) => <span {...props} />,
+        <div key={index} className="mb-1">
+          <ReactMarkdown 
+            components={{ 
+              // Override the 'p' tag to prevent extra spacing issues
+              p: ({node, ...props}) => <span {...props} />,
 
-              // FORCE BOLD: explicit Bootstrap class
-              strong: ({ node, ...props }) => <span className="fw-bold text-dark" {...props} />,
-
-              // Handle lists if your response has bullet points
-              ul: ({ node, ...props }) => <ul className="mb-0 ps-3" {...props} />,
-              li: ({ node, ...props }) => <li className="mb-1" {...props} />
+              // FORCE BOLD: We replace <strong> with a <b> tag and inline styles
+              strong: ({node, ...props}) => (
+                <span style={{ fontWeight: '700', color: 'black' }}>
+                  {props.children}
+                </span>
+              )
             }}
           >
             {part}
           </ReactMarkdown>
-        </span>
+        </div>
       );
     });
   };
-
   // Reusable Collapsible Card
   const CollapsibleCard = ({
     title,
