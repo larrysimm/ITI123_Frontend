@@ -267,25 +267,36 @@ export default function App() {
     }
   };
 
-  // Helper to format STAR text with bold headers and new paragraphs
+  // Helper to format STAR text (Situation, Task, Action, Result) + Render Markdown
   const formatStarResponse = (text) => {
     if (!text) return null;
 
-    // Split the text by the keywords, keeping the keywords in the result
-    // The regex looks for the words Situation, Task, Action, Result followed by a colon
-    const parts = text.split(/(Situation:|Task:|Action:|Result:)/g);
+    // 1. Split by the keywords
+    return text.split(/(Situation:|Task:|Action:|Result:)/g).map((part, index) => {
+      const trimmed = part.trim();
 
-    return parts.map((part, index) => {
-      // If it's a keyword, make it bold
-      if (['Situation:', 'Task:', 'Action:', 'Result:'].includes(part.trim())) {
+      // 2. If it's a Keyword -> Render as Green Bold Header
+      if (['Situation:', 'Task:', 'Action:', 'Result:'].includes(trimmed)) {
         return (
-          <span key={index} className="fw-bold d-block mt-2 text-primary">
-            {part}
+          <span key={index} className="d-block fw-bold text-success mt-3 mb-1">
+            {trimmed}
           </span>
         );
       }
-      // If it's the content, just display it
-      return <span key={index}>{part}</span>;
+
+      // 3. If it's Content -> Render with ReactMarkdown (to support **Bold**)
+      return (
+        <span key={index}>
+          <ReactMarkdown
+            components={{
+              // Override paragraph to span so it fits nicely in the card
+              p: ({ node, ...props }) => <span {...props} />
+            }}
+          >
+            {part}
+          </ReactMarkdown>
+        </span>
+      );
     });
   };
 
