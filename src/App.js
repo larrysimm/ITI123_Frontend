@@ -459,7 +459,7 @@ export default function App() {
             <div>
               <label className="small fw-bold text-muted" style={{ fontSize: '11px' }}>RESUME STATUS</label>
               {resumeName ? (
-                <div className="p-2 bg-white text-success rounded small border d-flex align-items-center justify-content-between shadow-sm animate__animated animate__fadeIn">
+                <div className="p-2 text-success rounded small border d-flex align-items-center justify-content-between shadow-sm animate__animated animate__fadeIn">
                   <span className="text-truncate" style={{ maxWidth: '200px' }}>
                     <i className="bi bi-file-earmark-pdf-fill me-2"></i>{resumeName}
                   </span>
@@ -647,6 +647,7 @@ export default function App() {
             <>
               <div className="d-flex align-items-center justify-content-between mb-4">
                 <div>
+                  <img src={logo} alt="App Logo" style={{ height: '60px' }} />
                   <h1 className="display-6 fw-bold text-dark m-0">Interview Architect</h1>
                   <small className="text-muted">Optimizing answers for <strong>{targetRole}</strong></small>
                 </div>
