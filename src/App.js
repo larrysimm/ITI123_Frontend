@@ -657,7 +657,7 @@ export default function App() {
                     <img
                       src={logo}
                       alt="App Logo"
-                      style={{ height: '60px' }}
+                      style={{ height: '72px' }}
                       className="me-3"
                     />
 
