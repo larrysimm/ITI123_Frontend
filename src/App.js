@@ -103,7 +103,7 @@ export default function App() {
       console.log("🚀 Fetching initial data (Questions & Roles)...");
 
       // A. Fetch Questions
-axios.get(`${API_URL}/questions`)
+      axios.get(`${API_URL}/questions`)
         .then(res => {
           // 1. Sort Alphabetically
           const sortedQuestions = res.data.sort((a, b) => a.text.localeCompare(b.text));
@@ -354,6 +354,17 @@ axios.get(`${API_URL}/questions`)
         )}
       </div>
     );
+  };
+
+  // RESET HANDLER: Clears the answer and results, keeps the resume/role
+  const handleResetPractice = () => {
+    setAnswer("");           // Clear the user's typed answer
+    setResult(null);         // Clear the AI analysis results
+    setCurrentStep(0);       // Reset the progress bar
+    setIsCustomQuestion(false); // Optional: Reset custom question mode
+    
+    // Optional: Scroll back to the top to choose a new question
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // --- 3. RENDER ---
@@ -712,7 +723,19 @@ axios.get(`${API_URL}/questions`)
                   value={answer} onChange={e => setAnswer(e.target.value)}
                 ></textarea>
 
-                <div className="d-flex justify-content-end mt-3">
+                <div className="d-flex justify-content-between align-items-center mt-3">
+                  {/* 1. Clear / Reset Button */}
+                <button 
+                  className="btn btn-link text-muted text-decoration-none btn-sm"
+                  onClick={() => {
+                     if(window.confirm("Are you sure you want to clear your answer?")) {
+                        setAnswer(""); 
+                     }
+                  }}
+                  disabled={!answer.trim() || loading} // Disable if empty
+                >
+                  <i className="bi bi-trash me-1"></i> Clear
+                </button>
                   <button
                     onClick={handleAnalyzeStream}
                     // 1. DISABLE ATTRIBUTE
@@ -807,6 +830,14 @@ axios.get(`${API_URL}/questions`)
                         {formatStarResponse(result.rewritten_answer)}
                       </div>
                     </CollapsibleCard>
+                  </div>
+                  <div className="text-center mt-5 mb-5 pb-5">
+                    <button 
+                      className="btn btn-outline-primary btn-lg px-5 shadow-sm rounded-pill"
+                      onClick={handleResetPractice}
+                    >
+                      <i className="bi bi-arrow-repeat me-2"></i> Practice Another Question
+                    </button>
                   </div>
                 </div>
               )}
