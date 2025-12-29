@@ -406,7 +406,7 @@ export default function App() {
                 style={{
                   height: '152px',        // Adjust size to match the icon
                   objectFit: 'contain',  // Keeps aspect ratio correct
-                  marginLeft: '-50px'
+                  marginLeft: '-40px'
                 }}
               />
             </div>
