@@ -406,7 +406,7 @@ export default function App() {
                 style={{
                   height: '152px',        // Adjust size to match the icon
                   objectFit: 'contain',  // Keeps aspect ratio correct
-                  borderRadius: '4px'    // Optional: Smooth corners if needed
+                  marginLeft: '-50px'
                 }}
               />
             </div>
