@@ -670,9 +670,12 @@ axios.get(`${API_URL}/questions`)
                           }
                         }}
                       >
-                        {questionBank.map((q) => (
-                          <option key={q.id} value={q.text}>{q.text}</option>
+                        {questionBank.map((q, index) => (
+                          <option key={q.id} value={q.text}>
+                            {index + 1}. {q.text}
+                          </option>
                         ))}
+                        
                         <option disabled>──────────────────────────</option>
                         <option value="CUSTOM_MODE">✎ Type a custom question...</option>
                       </select>
