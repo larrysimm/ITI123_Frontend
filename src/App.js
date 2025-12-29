@@ -103,11 +103,16 @@ export default function App() {
       console.log("🚀 Fetching initial data (Questions & Roles)...");
 
       // A. Fetch Questions
-      axios.get(`${API_URL}/questions`)
+axios.get(`${API_URL}/questions`)
         .then(res => {
-          setQuestionBank(res.data);
-          if (Array.isArray(res.data) && res.data.length > 0) {
-            setQuestion(res.data[0].text);
+          // 1. Sort Alphabetically
+          const sortedQuestions = res.data.sort((a, b) => a.text.localeCompare(b.text));
+          
+          setQuestionBank(sortedQuestions);
+
+          // 2. Select the first one (Alphabetical #1)
+          if (Array.isArray(sortedQuestions) && sortedQuestions.length > 0) {
+            setQuestion(sortedQuestions[0].text);
           }
         })
         .catch(err => console.error("❌ Error fetching questions:", err));
