@@ -404,7 +404,7 @@ export default function App() {
                 src={polyTitle}
                 alt="Poly-2-Pro"
                 style={{
-                  height: '128px',        // Adjust size to match the icon
+                  height: '152px',        // Adjust size to match the icon
                   objectFit: 'contain',  // Keeps aspect ratio correct
                   borderRadius: '4px'    // Optional: Smooth corners if needed
                 }}
