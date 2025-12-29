@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import ThinkingTrace from './ThinkingTrace';
 import './App.css'; // Ensure you have basic styles
 import logo from './logo.png';
-import polyTitle from './poly2pro.jpg';
+import polyTitle from './poly2pro.png';
 
 // Use Env Var or Default to Localhost
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
