@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import ThinkingTrace from './ThinkingTrace';
 import './App.css'; // Ensure you have basic styles
 import logo from './logo.png';
+import polyTitle from './poly2pro.jpg';
 
 // Use Env Var or Default to Localhost
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -107,7 +108,7 @@ export default function App() {
         .then(res => {
           // 1. Sort Alphabetically
           const sortedQuestions = res.data.sort((a, b) => a.text.localeCompare(b.text));
-          
+
           setQuestionBank(sortedQuestions);
 
           // 2. Select the first one (Alphabetical #1)
@@ -362,7 +363,7 @@ export default function App() {
     setResult(null);         // Clear the AI analysis results
     setCurrentStep(0);       // Reset the progress bar
     setIsCustomQuestion(false); // Optional: Reset custom question mode
-    
+
     // Optional: Scroll back to the top to choose a new question
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -373,42 +374,41 @@ export default function App() {
 
       {/* SIDEBAR (Always Visible) */}
       {/* 1. REMOVE p-4 from here so the sticky header hits the true top edge */}
-      <div className="sidebar" style={{ 
-          height: '100vh', 
-          overflowY: 'auto',
-          backgroundColor: '#f8f9fa'
-          }}
+      <div className="sidebar" style={{
+        height: '100vh',
+        overflowY: 'auto',
+        backgroundColor: '#f8f9fa'
+      }}
       >
-        
+
         {/* 2. STICKY HEADER 
             - Added p-4 here instead to restore spacing.
             - border-bottom creates a clean separation when content scrolls under.
         */}
-        <div 
-          className="sticky-top" 
-          style={{ 
-            top: 0, 
+        <div
+          className="sticky-top"
+          style={{
+            top: 0,
             zIndex: 100,
             backgroundColor: '#f8f9fa', // Ensure this matches your sidebar background color
             borderBottom: '1px solid rgba(0,0,0,0.1)'
           }}
         >
           {/* Inner container to handle padding (keeps content aligned) */}
-          <div className="p-4 pb-3"> 
-            
+          <div className="p-4 pb-3">
+
             {/* A. Logo & Title */}
             <div className="mb-4 d-flex align-items-center gap-2">
               <img src={logo} alt="App Logo" style={{ height: '48px' }} />
-              {/* 2. NEW FONT COLOR */}
-              <h4 
-                className="fw-bold m-0" 
-                style={{ 
-                  color: '#4a148c', /* Deep Purple (Change this hex code to any color you want) */
-                  letterSpacing: '-0.5px'
+              <img
+                src={polyTitle}
+                alt="Poly-2-Pro"
+                style={{
+                  height: '40px',        // Adjust size to match the icon
+                  objectFit: 'contain',  // Keeps aspect ratio correct
+                  borderRadius: '4px'    // Optional: Smooth corners if needed
                 }}
-                >
-                  Poly-2-Pro
-              </h4>
+              />
             </div>
 
             {/* B. System Status */}
@@ -474,7 +474,7 @@ export default function App() {
         {/* 3. SCROLLABLE CONTENT 
             - Added p-4 here to restore spacing for the content below the header.
         */}
-        <div className="p-4 pt-2 pb-5"> 
+        <div className="p-4 pt-2 pb-5">
           {resumeName && (
             <div className="animate__animated animate__fadeIn">
               <label className="small fw-bold text-muted mb-2" style={{ fontSize: '11px' }}>
@@ -511,7 +511,7 @@ export default function App() {
                             {skillAnalysis.matched.map((item, i) => {
                               const skillName = typeof item === 'string' ? item : item.skill;
                               const reason = typeof item === 'string' ? '' : item.reason;
-                              const code = item.code || ""; 
+                              const code = item.code || "";
 
                               return (
                                 <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
@@ -541,7 +541,7 @@ export default function App() {
                             {skillAnalysis.missing.map((item, i) => {
                               const skillName = typeof item === 'string' ? item : item.skill;
                               const gap = typeof item === 'string' ? '' : item.gap;
-                              const code = item.code || ""; 
+                              const code = item.code || "";
 
                               return (
                                 <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
@@ -640,24 +640,24 @@ export default function App() {
             /* --- MAIN INTERFACE (Resume Exists) --- */
             <>
               <div className="d-flex align-items-center justify-content-between mb-4">
-                  <div className="d-flex align-items-center">
+                <div className="d-flex align-items-center">
 
-                    {/* Logo with margin-end (me-3) for spacing */}
-                    <img
-                      src={logo}
-                      alt="App Logo"
-                      style={{ height: '72px' }}
-                      className="me-3"
-                    />
+                  {/* Logo with margin-end (me-3) for spacing */}
+                  <img
+                    src={logo}
+                    alt="App Logo"
+                    style={{ height: '72px' }}
+                    className="me-3"
+                  />
 
-                    {/* Text Wrapper: Keeps Title and Subtitle stacked vertically */}
-                    <div>
-                      <h1 className="display-6 fw-bold text-dark m-0">Interview Architect</h1>
-                      <small className="text-muted">
-                        Optimizing answers for <strong>{targetRole}</strong>
-                      </small>
-                    </div>
+                  {/* Text Wrapper: Keeps Title and Subtitle stacked vertically */}
+                  <div>
+                    <h1 className="display-6 fw-bold text-dark m-0">Interview Architect</h1>
+                    <small className="text-muted">
+                      Optimizing answers for <strong>{targetRole}</strong>
+                    </small>
                   </div>
+                </div>
                 <button onClick={() => { setResumeName(""); setResumeText("") }} className="btn btn-sm btn-outline-secondary">
                   <i className="bi bi-arrow-counterclockwise me-1"></i> Change Resume
                 </button>
@@ -686,7 +686,7 @@ export default function App() {
                             {index + 1}. {q.text}
                           </option>
                         ))}
-                        
+
                         <option disabled>──────────────────────────</option>
                         <option value="CUSTOM_MODE">✎ Type a custom question...</option>
                       </select>
@@ -725,17 +725,17 @@ export default function App() {
 
                 <div className="d-flex justify-content-between align-items-center mt-3">
                   {/* 1. Clear / Reset Button */}
-                <button 
-                  className="btn btn-link text-muted text-decoration-none btn-sm"
-                  onClick={() => {
-                     if(window.confirm("Are you sure you want to clear your answer?")) {
-                        setAnswer(""); 
-                     }
-                  }}
-                  disabled={!answer.trim() || loading} // Disable if empty
-                >
-                  <i className="bi bi-trash me-1"></i> Clear
-                </button>
+                  <button
+                    className="btn btn-link text-muted text-decoration-none btn-sm"
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to clear your answer?")) {
+                        setAnswer("");
+                      }
+                    }}
+                    disabled={!answer.trim() || loading} // Disable if empty
+                  >
+                    <i className="bi bi-trash me-1"></i> Clear
+                  </button>
                   <button
                     onClick={handleAnalyzeStream}
                     // 1. DISABLE ATTRIBUTE
@@ -773,10 +773,10 @@ export default function App() {
 
               {/* SHOW TRACE: While loading OR if we have a finished trace */}
               {(loading || result?.manager_thinking) && (
-                <ThinkingTrace 
+                <ThinkingTrace
                   // If loading is done, force step to 100 so all items show as "Checked/Completed"
-                  currentStep={loading ? currentStep : 100} 
-                  managerThinking={result?.manager_thinking} 
+                  currentStep={loading ? currentStep : 100}
+                  managerThinking={result?.manager_thinking}
                   coachThinking={result?.coach_thinking}
                 />
               )}
@@ -832,7 +832,7 @@ export default function App() {
                     </CollapsibleCard>
                   </div>
                   <div className="text-center mt-5 mb-5 pb-5">
-                    <button 
+                    <button
                       className="btn btn-outline-primary btn-lg px-5 shadow-sm rounded-pill"
                       onClick={handleResetPractice}
                     >
