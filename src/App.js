@@ -31,6 +31,7 @@ export default function App() {
   const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
   const isValidateDisabled = !answer.trim() || !skillAnalysis;
   const [skillStep, setSkillStep] = useState(0);
+  const [traceMessage, setTraceMessage] = useState("");
 
   // Server Health State
   const [serverStatus, setServerStatus] = useState("sleeping"); // sleeping, waking, ready, timeout
@@ -139,11 +140,11 @@ export default function App() {
     }
   }, [serverStatus]);
 
-// SKILL MATCHING LOGIC (REAL-TIME STREAMING)
+  // SKILL MATCHING LOGIC (REAL-TIME STREAMING)
   useEffect(() => {
     // Only run if we have BOTH a resume text and a selected role
     if (serverStatus === 'ready' && resumeText && targetRole) {
-      
+
       console.log("⚡ Starting Real-Time Skill Analysis...");
       setIsAnalyzingProfile(true);
       setSkillAnalysis(null);
@@ -170,7 +171,7 @@ export default function App() {
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
-            
+
             // Split by newline to get each JSON object
             const lines = buffer.split("\n");
             buffer = lines.pop(); // Keep the last incomplete chunk in the buffer
@@ -183,16 +184,16 @@ export default function App() {
                   // HANDLE STATUS UPDATES
                   if (msg.type === 'status') {
                     setSkillStep(msg.step);
-                    // Optional: You could also display msg.message in the UI!
-                  } 
-                  
+                    setTraceMessage(msg.message); // <--- CAPTURE THE LIVE MESSAGE
+                  }
+
                   // HANDLE FINAL RESULT
                   else if (msg.type === 'result') {
-                    setSkillStep(100); // Done
+                    setSkillStep(100);
+                    setTraceMessage("Analysis Complete."); // <--- Final success message
                     setSkillAnalysis(msg.data);
-                    
-                    // Small delay to show "Done" before hiding trace
-                    setTimeout(() => setIsAnalyzingProfile(false), 800);
+
+                    setTimeout(() => setIsAnalyzingProfile(false), 1500); // Wait a bit so they can read it
                   }
 
                 } catch (e) {
@@ -572,7 +573,7 @@ export default function App() {
                                 {matchedList.map((item, i) => {
                                   const skillName = typeof item === 'string' ? item : item.skill;
                                   const reason = typeof item === 'string' ? '' : item.reason;
-                                  const code = item.code || ""; 
+                                  const code = item.code || "";
 
                                   return (
                                     <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
@@ -602,7 +603,7 @@ export default function App() {
                                 {missingList.map((item, i) => {
                                   const skillName = typeof item === 'string' ? item : item.skill;
                                   const gap = typeof item === 'string' ? '' : item.gap;
-                                  const code = item.code || ""; 
+                                  const code = item.code || "";
 
                                   return (
                                     <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
