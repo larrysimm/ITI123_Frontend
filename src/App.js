@@ -176,8 +176,7 @@ export default function App() {
       return () => clearInterval(interval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetRole, serverStatus]);
-  // (Note: We keep resumeText out of deps to avoid double-trigger on upload)
+  }, [resumeText, targetRole, serverStatus]);
 
   // --- 2. HANDLERS ---
   const handleFileUpload = async (e) => {
