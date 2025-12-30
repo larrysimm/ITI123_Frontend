@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import ThinkingTrace from './ThinkingTrace';
-import './App.css'; // Ensure you have basic styles
-import logo from './logo.png';
+import SidebarTrace from './SidebarTrace';
 import polyTitle from './poly2pro.png';
+import logo from './logo.png';
+import './App.css';
 
 // Use Env Var or Default to Localhost
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -29,6 +30,7 @@ export default function App() {
   const [skillAnalysis, setSkillAnalysis] = useState(null); // Stores the match results
   const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
   const isValidateDisabled = !answer.trim() || !skillAnalysis;
+  const [skillStep, setSkillStep] = useState(0);
 
   // Server Health State
   const [serverStatus, setServerStatus] = useState("sleeping"); // sleeping, waking, ready, timeout
@@ -141,21 +143,41 @@ export default function App() {
     // Only run if we have BOTH a resume text and a selected role
     if (serverStatus === 'ready' && resumeText && targetRole) {
       setIsAnalyzingProfile(true);
+      setSkillAnalysis(null); // Clear previous results
+      setSkillStep(1);        // Start at Step 1
 
+      // A. Start a timer to fake progress through steps 1, 2, and 3
+      const interval = setInterval(() => {
+        setSkillStep((prev) => {
+          if (prev < 3) return prev + 1; // Advance up to step 3
+          return prev; // Stay on 3 until API finishes
+        });
+      }, 1200); // 1.2 seconds per step
+
+      // B. Call the API
       axios.post(`${API_URL}/match_skills`, {
         resume_text: resumeText,
         target_role: targetRole
       })
         .then(res => {
+          // C. On Success:
+          clearInterval(interval);   // Stop the timer
+          setSkillStep(100);         // Mark as "Done"
           setSkillAnalysis(res.data);
           setIsAnalyzingProfile(false);
         })
         .catch(err => {
           console.error("Skill Match Error:", err);
+          clearInterval(interval);
           setIsAnalyzingProfile(false);
         });
+
+      // Cleanup timer if component unmounts
+      return () => clearInterval(interval);
     }
-  }, [resumeText, targetRole, serverStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetRole, serverStatus]);
+  // (Note: We keep resumeText out of deps to avoid double-trigger on upload)
 
   // --- 2. HANDLERS ---
   const handleFileUpload = async (e) => {
@@ -486,9 +508,8 @@ export default function App() {
 
                   {/* Loading State */}
                   {isAnalyzingProfile && (
-                    <div className="text-center py-3">
-                      <div className="spinner-border spinner-border-sm text-primary mb-2"></div>
-                      <div className="small text-muted">Deep Matching...</div>
+                    <div className="mb-3">
+                      <SidebarTrace currentStep={skillStep} />
                     </div>
                   )}
 
