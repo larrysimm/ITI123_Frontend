@@ -549,73 +549,81 @@ export default function App() {
 
                   {/* Results Display */}
                   {!isAnalyzingProfile && skillAnalysis && (
-                    <>
-                      <div className="mb-3 pb-2 border-bottom">
-                        <small className="text-secondary fst-italic" style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
-                          Match for: <strong>{targetRole}</strong>
-                        </small>
-                      </div>
+                    (() => {
+                      // 1. DETECT CORRECT DATA KEYS (Handles snake_case or camelCase)
+                      const matchedList = skillAnalysis.matched || skillAnalysis.matched_skills || [];
+                      const missingList = skillAnalysis.missing || skillAnalysis.missing_skills || [];
 
-                      {/* Matched Skills - SAFE CHECK ADDED */}
-                      {skillAnalysis.matched && skillAnalysis.matched.length > 0 && (
-                        <div className="mb-3">
-                          <h6 className="small fw-bold text-success mb-2">
-                            <i className="bi bi-check-circle-fill me-1"></i> Verified Matches
-                          </h6>
-                          <ul className="list-unstyled mb-0 ps-1">
-                            {skillAnalysis.matched.map((item, i) => {
-                              const skillName = typeof item === 'string' ? item : item.skill;
-                              const reason = typeof item === 'string' ? '' : item.reason;
-                              const code = item.code || ""; 
+                      return (
+                        <>
+                          <div className="mb-3 pb-2 border-bottom">
+                            <small className="text-secondary fst-italic" style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
+                              Match for: <strong>{targetRole}</strong>
+                            </small>
+                          </div>
 
-                              return (
-                                <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
-                                  <div className="d-flex justify-content-between align-items-center">
-                                    <strong>{skillName}</strong>
-                                    {code && <span className="badge bg-light text-secondary border" style={{ fontSize: '0.65rem' }}>{code}</span>}
-                                  </div>
-                                  {reason && (
-                                    <div className="text-muted fst-italic mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
-                                      {reason}
-                                    </div>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      )}
+                          {/* 2. MATCHED SKILLS */}
+                          {matchedList.length > 0 && (
+                            <div className="mb-3">
+                              <h6 className="small fw-bold text-success mb-2">
+                                <i className="bi bi-check-circle-fill me-1"></i> Verified Matches
+                              </h6>
+                              <ul className="list-unstyled mb-0 ps-1">
+                                {matchedList.map((item, i) => {
+                                  const skillName = typeof item === 'string' ? item : item.skill;
+                                  const reason = typeof item === 'string' ? '' : item.reason;
+                                  const code = item.code || ""; 
 
-                      {/* Missing Skills - SAFE CHECK ADDED */}
-                      {skillAnalysis.missing && skillAnalysis.missing.length > 0 && (
-                        <div>
-                          <h6 className="small fw-bold text-danger mb-2">
-                            <i className="bi bi-exclamation-octagon-fill me-1"></i> Critical Gaps
-                          </h6>
-                          <ul className="list-unstyled mb-0 ps-1">
-                            {skillAnalysis.missing.map((item, i) => {
-                              const skillName = typeof item === 'string' ? item : item.skill;
-                              const gap = typeof item === 'string' ? '' : item.gap;
-                              const code = item.code || ""; 
+                                  return (
+                                    <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
+                                      <div className="d-flex justify-content-between align-items-center">
+                                        <strong>{skillName}</strong>
+                                        {code && <span className="badge bg-light text-secondary border" style={{ fontSize: '0.65rem' }}>{code}</span>}
+                                      </div>
+                                      {reason && (
+                                        <div className="text-muted fst-italic mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
+                                          {reason}
+                                        </div>
+                                      )}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          )}
 
-                              return (
-                                <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
-                                  <div className="d-flex justify-content-between align-items-center">
-                                    <strong>{skillName}</strong>
-                                    {code && <span className="badge bg-light text-secondary border" style={{ fontSize: '0.65rem' }}>{code}</span>}
-                                  </div>
-                                  {gap && (
-                                    <div className="text-danger mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
-                                      {gap}
-                                    </div>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      )}
-                    </>
+                          {/* 3. MISSING SKILLS */}
+                          {missingList.length > 0 && (
+                            <div>
+                              <h6 className="small fw-bold text-danger mb-2">
+                                <i className="bi bi-exclamation-octagon-fill me-1"></i> Critical Gaps
+                              </h6>
+                              <ul className="list-unstyled mb-0 ps-1">
+                                {missingList.map((item, i) => {
+                                  const skillName = typeof item === 'string' ? item : item.skill;
+                                  const gap = typeof item === 'string' ? '' : item.gap;
+                                  const code = item.code || ""; 
+
+                                  return (
+                                    <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
+                                      <div className="d-flex justify-content-between align-items-center">
+                                        <strong>{skillName}</strong>
+                                        {code && <span className="badge bg-light text-secondary border" style={{ fontSize: '0.65rem' }}>{code}</span>}
+                                      </div>
+                                      {gap && (
+                                        <div className="text-danger mt-1" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
+                                          {gap}
+                                        </div>
+                                      )}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()
                   )}
                 </div>
               </div>
