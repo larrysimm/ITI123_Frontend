@@ -139,41 +139,76 @@ export default function App() {
     }
   }, [serverStatus]);
 
+// SKILL MATCHING LOGIC (REAL-TIME STREAMING)
   useEffect(() => {
     // Only run if we have BOTH a resume text and a selected role
     if (serverStatus === 'ready' && resumeText && targetRole) {
+      
+      console.log("⚡ Starting Real-Time Skill Analysis...");
       setIsAnalyzingProfile(true);
-      setSkillAnalysis(null); // Clear previous results
-      setSkillStep(1);        // Start at Step 1
+      setSkillAnalysis(null);
+      setSkillStep(1); // Default start
 
-      // A. Start a timer to fake progress through steps 1, 2, and 3
-      const interval = setInterval(() => {
-        setSkillStep((prev) => {
-          if (prev < 3) return prev + 1; // Advance up to step 3
-          return prev; // Stay on 3 until API finishes
-        });
-      }, 1200); // 1.2 seconds per step
+      const fetchStream = async () => {
+        try {
+          const response = await fetch(`${API_URL}/match_skills`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              resume_text: resumeText,
+              target_role: targetRole
+            })
+          });
 
-      // B. Call the API
-      axios.post(`${API_URL}/match_skills`, {
-        resume_text: resumeText,
-        target_role: targetRole
-      })
-        .then(res => {
-          // C. On Success:
-          clearInterval(interval);   // Stop the timer
-          setSkillStep(100);         // Mark as "Done"
-          setSkillAnalysis(res.data);
+          // Create a reader to read the stream line-by-line
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            
+            // Split by newline to get each JSON object
+            const lines = buffer.split("\n");
+            buffer = lines.pop(); // Keep the last incomplete chunk in the buffer
+
+            for (const line of lines) {
+              if (line.trim()) {
+                try {
+                  const msg = JSON.parse(line);
+
+                  // HANDLE STATUS UPDATES
+                  if (msg.type === 'status') {
+                    setSkillStep(msg.step);
+                    // Optional: You could also display msg.message in the UI!
+                  } 
+                  
+                  // HANDLE FINAL RESULT
+                  else if (msg.type === 'result') {
+                    setSkillStep(100); // Done
+                    setSkillAnalysis(msg.data);
+                    
+                    // Small delay to show "Done" before hiding trace
+                    setTimeout(() => setIsAnalyzingProfile(false), 800);
+                  }
+
+                } catch (e) {
+                  console.error("Error parsing stream JSON", e);
+                }
+              }
+            }
+          }
+
+        } catch (err) {
+          console.error("Stream Connection Error:", err);
           setIsAnalyzingProfile(false);
-        })
-        .catch(err => {
-          console.error("Skill Match Error:", err);
-          clearInterval(interval);
-          setIsAnalyzingProfile(false);
-        });
+        }
+      };
 
-      // Cleanup timer if component unmounts
-      return () => clearInterval(interval);
+      fetchStream();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeText, targetRole, serverStatus]);
