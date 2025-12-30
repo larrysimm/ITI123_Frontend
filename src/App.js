@@ -556,8 +556,8 @@ export default function App() {
                         </small>
                       </div>
 
-                      {/* Matched Skills */}
-                      {skillAnalysis.matched.length > 0 && (
+                      {/* Matched Skills - SAFE CHECK ADDED */}
+                      {skillAnalysis.matched && skillAnalysis.matched.length > 0 && (
                         <div className="mb-3">
                           <h6 className="small fw-bold text-success mb-2">
                             <i className="bi bi-check-circle-fill me-1"></i> Verified Matches
@@ -566,7 +566,7 @@ export default function App() {
                             {skillAnalysis.matched.map((item, i) => {
                               const skillName = typeof item === 'string' ? item : item.skill;
                               const reason = typeof item === 'string' ? '' : item.reason;
-                              const code = item.code || "";
+                              const code = item.code || ""; 
 
                               return (
                                 <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
@@ -586,8 +586,8 @@ export default function App() {
                         </div>
                       )}
 
-                      {/* Missing Skills */}
-                      {skillAnalysis.missing.length > 0 && (
+                      {/* Missing Skills - SAFE CHECK ADDED */}
+                      {skillAnalysis.missing && skillAnalysis.missing.length > 0 && (
                         <div>
                           <h6 className="small fw-bold text-danger mb-2">
                             <i className="bi bi-exclamation-octagon-fill me-1"></i> Critical Gaps
@@ -596,7 +596,7 @@ export default function App() {
                             {skillAnalysis.missing.map((item, i) => {
                               const skillName = typeof item === 'string' ? item : item.skill;
                               const gap = typeof item === 'string' ? '' : item.gap;
-                              const code = item.code || "";
+                              const code = item.code || ""; 
 
                               return (
                                 <li key={i} className="text-dark small mb-2 border-bottom pb-1" style={{ fontSize: '0.8rem' }}>
