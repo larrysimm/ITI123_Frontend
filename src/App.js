@@ -31,7 +31,6 @@ export default function App() {
   const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
   const isValidateDisabled = !answer.trim() || !skillAnalysis;
   const [skillStep, setSkillStep] = useState(0);
-  const [traceMessage, setTraceMessage] = useState("");
   const [traceLogs, setTraceLogs] = useState({ 1: "", 2: "", 3: "" });
 
   // Server Health State
