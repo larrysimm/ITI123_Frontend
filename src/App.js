@@ -542,12 +542,13 @@ export default function App() {
               <div className="card bg-white border shadow-sm">
                 <div className="card-body p-3">
 
-                  {/* Loading State */}
-                  {isAnalyzingProfile && (
+                  {/* SHOW TRACE: During Analysis OR After Completion */}
+                  {(isAnalyzingProfile || (skillAnalysis && skillStep === 100)) && (
                     <div className="mb-3">
                       <SidebarTrace
                         currentStep={skillStep}
-                        traceLogs={traceLogs} />
+                        traceLogs={traceLogs}
+                      />
                     </div>
                   )}
 
