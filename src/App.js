@@ -32,6 +32,7 @@ export default function App() {
   const isValidateDisabled = !answer.trim() || !skillAnalysis;
   const [skillStep, setSkillStep] = useState(0);
   const [traceMessage, setTraceMessage] = useState("");
+  const [traceLogs, setTraceLogs] = useState({ 1: "", 2: "", 3: "" });
 
   // Server Health State
   const [serverStatus, setServerStatus] = useState("sleeping"); // sleeping, waking, ready, timeout
@@ -140,28 +141,29 @@ export default function App() {
     }
   }, [serverStatus]);
 
-  // SKILL MATCHING LOGIC (REAL-TIME STREAMING)
+  // SKILL MATCHING LOGIC (With Expandable Trace)
   useEffect(() => {
-    // Only run if we have BOTH a resume text and a selected role
     if (serverStatus === 'ready' && resumeText && targetRole) {
-
-      console.log("⚡ Starting Real-Time Skill Analysis...");
+      
+      console.log("⚡ Starting Detailed Skill Analysis...");
       setIsAnalyzingProfile(true);
       setSkillAnalysis(null);
-      setSkillStep(1); // Default start
+      setSkillStep(1); 
+      // Reset logs
+      setTraceLogs({ 
+        1: "Initializing connection...\n", 
+        2: "", 
+        3: "" 
+      });
 
       const fetchStream = async () => {
         try {
           const response = await fetch(`${API_URL}/match_skills`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              resume_text: resumeText,
-              target_role: targetRole
-            })
+            body: JSON.stringify({ resume_text: resumeText, target_role: targetRole })
           });
 
-          // Create a reader to read the stream line-by-line
           const reader = response.body.getReader();
           const decoder = new TextDecoder("utf-8");
           let buffer = "";
@@ -171,40 +173,40 @@ export default function App() {
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
-
-            // Split by newline to get each JSON object
             const lines = buffer.split("\n");
-            buffer = lines.pop(); // Keep the last incomplete chunk in the buffer
+            buffer = lines.pop();
 
             for (const line of lines) {
               if (line.trim()) {
                 try {
                   const msg = JSON.parse(line);
 
-                  // HANDLE STATUS UPDATES
-                  if (msg.type === 'status') {
+                  // 1. UPDATE STEP NUMBER
+                  if (msg.step) {
                     setSkillStep(msg.step);
-                    setTraceMessage(msg.message); // <--- CAPTURE THE LIVE MESSAGE
                   }
 
-                  // HANDLE FINAL RESULT
-                  else if (msg.type === 'result') {
+                  // 2. APPEND LOGS TO THE SPECIFIC STEP
+                  if (msg.message) {
+                    setTraceLogs(prev => ({
+                      ...prev,
+                      [msg.step]: prev[msg.step] + "➜ " + msg.message + "\n"
+                    }));
+                  }
+                  
+                  // 3. HANDLE FINAL RESULT
+                  if (msg.type === 'result') {
                     setSkillStep(100);
-                    setTraceMessage("Analysis Complete."); // <--- Final success message
                     setSkillAnalysis(msg.data);
-
-                    setTimeout(() => setIsAnalyzingProfile(false), 1500); // Wait a bit so they can read it
+                    setTimeout(() => setIsAnalyzingProfile(false), 2000); // Keep open longer so user can read logs
                   }
 
-                } catch (e) {
-                  console.error("Error parsing stream JSON", e);
-                }
+                } catch (e) { console.error(e); }
               }
             }
           }
-
         } catch (err) {
-          console.error("Stream Connection Error:", err);
+          console.error("Stream Error:", err);
           setIsAnalyzingProfile(false);
         }
       };
@@ -546,7 +548,7 @@ export default function App() {
                     <div className="mb-3">
                       <SidebarTrace
                         currentStep={skillStep}
-                        liveMessage={traceMessage} />
+                        traceLogs={traceLogs} />
                     </div>
                   )}
 
