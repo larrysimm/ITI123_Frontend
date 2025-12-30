@@ -544,7 +544,9 @@ export default function App() {
                   {/* Loading State */}
                   {isAnalyzingProfile && (
                     <div className="mb-3">
-                      <SidebarTrace currentStep={skillStep} />
+                      <SidebarTrace
+                        currentStep={skillStep}
+                        liveMessage={traceMessage} />
                     </div>
                   )}
 
