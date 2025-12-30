@@ -635,6 +635,13 @@ export default function App() {
             </div>
           )}
         </div>
+      {/* New Sidebar Footer */}
+        <div className="mt-auto pt-4 pb-2 text-center border-top opacity-75">
+          <small className="text-muted fst-italic" style={{ fontSize: '0.75rem' }}>
+            <i className="bi bi-database-x me-1"></i>
+            No personal data is saved to any database.
+          </small>
+        </div>
       </div>
 
       {/* MAIN CONTENT AREA */}
@@ -693,6 +700,15 @@ export default function App() {
                   className="position-absolute w-100 h-100 start-0 top-0 opacity-0"
                   style={{ cursor: 'pointer' }}
                 />
+                {/* Privacy Note / Trust Badge */}
+                <div className="mt-3 text-center bg-light p-2 rounded border border-light-subtle">
+                  <small className="text-muted d-flex align-items-center justify-content-center gap-2" style={{ fontSize: '0.85rem' }}>
+                    <i className="bi bi-shield-lock-fill text-success fs-5"></i>
+                    <span>
+                      <strong>Privacy First:</strong> Your resume is processed in memory and <span className="text-decoration-underline">never stored</span>.
+                    </span>
+                  </small>
+                </div>
               </div>
 
               {serverStatus !== 'ready' && (
