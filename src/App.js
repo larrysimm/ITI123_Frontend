@@ -29,7 +29,7 @@ export default function App() {
   const [availableRoles, setAvailableRoles] = useState([]);
   const [skillAnalysis, setSkillAnalysis] = useState(null); // Stores the match results
   const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
-  const isValidateDisabled = !answer.trim() || !skillAnalysis;
+  const isValidateDisabled = !answer.trim() || !skillAnalysis || !question.trim();
   const [skillStep, setSkillStep] = useState(0);
   const [traceLogs, setTraceLogs] = useState({ 1: "", 2: "", 3: "" });
 
@@ -847,7 +847,9 @@ export default function App() {
                     <div className="text-center mt-2">
                       <small className="text-muted fst-italic">
                         {!skillAnalysis
-                          ? "* Please run the Skill Gap Analysis first."
+                          ? "* Please wait for the Skill Gap Analysis first."
+                          : !question.trim() 
+                          ? "* Please enter a question."
                           : "* Please type an answer to validate."}
                       </small>
                     </div>
