@@ -107,8 +107,6 @@ export default function App() {
 
   useEffect(() => {
     if (serverStatus === "ready") {
-      console.log("🚀 Fetching initial data (Questions & Roles)...");
-
       // A. Fetch Questions
       axios
         .get(`${API_URL}/questions`)
@@ -131,7 +129,6 @@ export default function App() {
       axios
         .get(`${API_URL}/roles`)
         .then((res) => {
-          console.log("✅ Roles received:", res.data);
           setAvailableRoles(res.data);
 
           // Set default role if list is not empty
@@ -152,7 +149,6 @@ export default function App() {
   // SKILL MATCHING LOGIC (With Expandable Trace)
   useEffect(() => {
     if (serverStatus === "ready" && resumeText && targetRole) {
-      console.log("⚡ Starting Detailed Skill Analysis...");
       setIsAnalyzingProfile(true);
       setSkillAnalysis(null);
       setSkillStep(1);
