@@ -1,0 +1,175 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+
+export function useInterviewSession(apiUrl, serverStatus, targetRole) {
+  // --- Upload State ---
+  const [uploading, setUploading] = useState(false);
+  const [resumeName, setResumeName] = useState("");
+  const [resumeText, setResumeText] = useState("");
+
+  // --- Skill Analysis State ---
+  const [skillAnalysis, setSkillAnalysis] = useState(null);
+  const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
+  const [skillStep, setSkillStep] = useState(0);
+  const [traceLogs, setTraceLogs] = useState({ 1: "", 2: "", 3: "" });
+
+  // --- Answer Analysis State ---
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  // 1. Skill Matching Stream (Triggered automatically when Resume or Role changes)
+  useEffect(() => {
+    if (serverStatus === "ready" && resumeText && targetRole) {
+      setIsAnalyzingProfile(true);
+      setSkillAnalysis(null);
+      setSkillStep(1);
+      setTraceLogs({ 1: "Initializing connection...\n", 2: "", 3: "" });
+
+      const fetchSkillStream = async () => {
+        try {
+          const response = await fetch(`${apiUrl}/match_skills`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              resume_text: resumeText,
+              target_role: targetRole,
+            }),
+          });
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop();
+
+            for (const line of lines) {
+              if (line.trim()) {
+                try {
+                  const msg = JSON.parse(line);
+                  if (msg.step) setSkillStep(msg.step);
+                  if (msg.message) {
+                    setTraceLogs((prev) => ({
+                      ...prev,
+                      [msg.step]: prev[msg.step] + "➜ " + msg.message + "\n",
+                    }));
+                  }
+                  if (msg.type === "result") {
+                    setSkillStep(100);
+                    setSkillAnalysis(msg.data);
+                    setTimeout(() => setIsAnalyzingProfile(false), 2000);
+                  }
+                } catch (e) {
+                  console.error(e);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          setIsAnalyzingProfile(false);
+        }
+      };
+      fetchSkillStream();
+    }
+  }, [resumeText, targetRole, serverStatus, apiUrl]);
+
+  // 2. Upload Handler
+  const handleFileUpload = async (e) => {
+    if (serverStatus !== "ready") return alert("Waiting for server...");
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await axios.post(`${apiUrl}/upload_resume`, formData);
+      setResumeText(res.data.extracted_text);
+      setResumeName(res.data.filename);
+    } catch (err) {
+      alert("Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 3. Answer Analysis Handler
+  const handleAnalyzeStream = async (question, answer) => {
+    if (!resumeText) return;
+    setLoading(true);
+    setResult(null);
+    setCurrentStep(1);
+
+    try {
+      const response = await fetch(`${apiUrl}/analyze_stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resume_text: resumeText,
+          target_role: targetRole,
+          question,
+          student_answer: answer,
+          skill_data: skillAnalysis,
+        }),
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const data = JSON.parse(line);
+              if (data.type === "step") setCurrentStep(data.step_id);
+              else if (data.type === "partial_update")
+                setResult((prev) => ({ ...prev, ...data.data }));
+              else if (data.type === "result") {
+                setResult(data.data);
+                setLoading(false);
+              } else if (data.type === "error") setLoading(false);
+            } catch (e) {}
+          }
+        }
+      }
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPractice = () => {
+    setResult(null);
+    setCurrentStep(0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return {
+    uploading,
+    loading,
+    resumeName,
+    setResumeName,
+    setResumeText,
+    skillAnalysis,
+    isAnalyzingProfile,
+    skillStep,
+    traceLogs,
+    result,
+    currentStep,
+    handleFileUpload,
+    handleAnalyzeStream,
+    handleResetPractice,
+  };
+}
