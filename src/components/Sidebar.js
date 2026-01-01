@@ -38,15 +38,17 @@ export default function Sidebar({
         {/* Inner container to handle padding (keeps content aligned) */}
         <div className="p-4 pb-3">
           {/* A. Logo & Title */}
-          <div className="mb-4 d-flex align-items-center gap-2">
-            <img src={logo} alt="App Logo" style={{ height: "48px" }} />
+          {/* CHANGED: Reduced margin-bottom from mb-4 to mb-2 to close the gap */}
+          <div className="mb-2 d-flex align-items-center gap-2">
+            <img src={logo} alt="App Logo" style={{ height: "40px" }} />
             <img
               src={polyTitle}
               alt="Poly-2-Pro"
               style={{
-                height: "152px",
-                objectFit: "contain",
-                marginLeft: "-40px",
+                // CHANGED: Fixed sizing to prevent it from looking too big
+                maxWidth: "160px",
+                height: "auto",
+                // Removed the negative margin since we are resizing correctly now
               }}
             />
           </div>
