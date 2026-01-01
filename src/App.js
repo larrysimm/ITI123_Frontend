@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import ReactMarkdown from "react-markdown";
-import ThinkingTrace from "./ThinkingTrace";
-import SidebarTrace from "./SidebarTrace";
-import CollapsibleCard from "./components/CollapsibleCard";
+import Sidebar from "./components/Sidebar";
+import LandingScreen from "./components/LandingScreen";
+import MainInterface from "./components/MainInterface";
 import polyTitle from "./poly2pro.png";
 import logo from "./logo.png";
 import "./App.css";
