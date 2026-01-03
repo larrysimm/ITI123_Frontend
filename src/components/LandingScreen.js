@@ -21,21 +21,21 @@ export default function LandingScreen({
         <div className="col-md-4">
           <div className="p-3 border rounded bg-white h-100 shadow-sm">
             <h6 className="fw-bold text-primary">
-              <i className="bi bi-1-circle me-2"></i>Upload Resume
+              <i className="bi bi-2-circle me-2"></i>Target Role
             </h6>
             <small className="text-muted">
-              Upload your PDF so the AI understands your unique background.
+              Select your desired job title to align questions with industry
+              standards.
             </small>
           </div>
         </div>
         <div className="col-md-4">
           <div className="p-3 border rounded bg-white h-100 shadow-sm">
             <h6 className="fw-bold text-primary">
-              <i className="bi bi-2-circle me-2"></i>Target Role
+              <i className="bi bi-1-circle me-2"></i>Upload Resume
             </h6>
             <small className="text-muted">
-              Select your desired job title to align questions with industry
-              standards.
+              Upload your PDF so the AI understands your unique background.
             </small>
           </div>
         </div>
