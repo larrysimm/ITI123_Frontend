@@ -53,7 +53,7 @@ export function useServerHealth(apiUrl, maxWaitTime = 300000) {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [retryTrigger, apiUrl, maxWaitTime]);
+  }, [retryTrigger, apiUrl, maxWaitTime, apiSecret]);
 
   return { serverStatus, elapsedTime, setRetryTrigger };
 }

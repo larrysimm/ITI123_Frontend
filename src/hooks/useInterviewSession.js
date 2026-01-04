@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { a } from "framer-motion/client";
 
 export function useInterviewSession(apiUrl, serverStatus, targetRole) {
   // --- Upload State ---
@@ -81,7 +82,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
       };
       fetchSkillStream();
     }
-  }, [resumeText, targetRole, serverStatus, apiUrl]);
+  }, [resumeText, targetRole, serverStatus, apiUrl, apiSecret]);
 
   // 2. Upload Handler
   const handleFileUpload = async (e) => {
