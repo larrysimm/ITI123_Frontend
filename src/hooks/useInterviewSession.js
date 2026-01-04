@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { a } from "framer-motion/client";
 
 export function useInterviewSession(apiUrl, serverStatus, targetRole) {
   // --- Upload State ---
