@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function LandingScreen({
   logo,
@@ -7,6 +7,37 @@ export default function LandingScreen({
   uploading,
   handleFileUpload,
 }) {
+  // 1. Local state for validation error messages
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // 2. Validation wrapper
+  const validateAndUpload = (event) => {
+    const file = event.target.files[0];
+
+    // Reset error on new attempt
+    setErrorMessage("");
+
+    if (file) {
+      const MAX_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+
+      if (file.size > MAX_SIZE) {
+        // Calculate size for display
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+
+        setErrorMessage(
+          `⚠️ File is too large (${sizeInMB} MB). Please upload a file smaller than 5MB.`
+        );
+
+        // Clear the input so they can try again
+        event.target.value = "";
+        return;
+      }
+    }
+
+    // If valid, pass to the parent handler
+    handleFileUpload(event);
+  };
+
   return (
     <div className="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center">
       <div className="mb-4">
@@ -35,7 +66,9 @@ export default function LandingScreen({
               <i className="bi bi-2-circle me-2"></i>Upload Resume
             </h6>
             <small className="text-muted">
-              Upload your PDF so the AI understands your unique background.
+              {/* 3a. Passive Reminder in the card */}
+              Upload your PDF <strong>(Max 5MB)</strong> so the AI understands
+              your unique background.
             </small>
           </div>
         </div>
@@ -54,8 +87,17 @@ export default function LandingScreen({
 
       {/* UPLOAD ACTION */}
       <div className="position-relative">
+        {/* 3b. Active Error Message Alert */}
+        {errorMessage && (
+          <div className="alert alert-danger py-2 mb-3 small shadow-sm animate__animated animate__shakeX">
+            {errorMessage}
+          </div>
+        )}
+
         <button
-          className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow fw-bold"
+          className={`btn btn-lg px-5 py-3 rounded-pill shadow fw-bold ${
+            errorMessage ? "btn-outline-danger" : "btn-primary"
+          }`}
           disabled={serverStatus !== "ready" || uploading}
         >
           {uploading ? (
@@ -74,10 +116,12 @@ export default function LandingScreen({
           type="file"
           accept=".pdf"
           disabled={serverStatus !== "ready" || uploading}
-          onChange={handleFileUpload}
+          // Change this to use the validation wrapper
+          onChange={validateAndUpload}
           className="position-absolute w-100 h-100 start-0 top-0 opacity-0"
           style={{ cursor: "pointer" }}
         />
+
         {/* Privacy Note / Trust Badge */}
         <div className="mt-3 text-center bg-light p-2 rounded border border-light-subtle">
           <small
