@@ -9,15 +9,14 @@ export function useInterviewData(apiUrl, serverStatus) {
   const [defaultQuestion, setDefaultQuestion] = useState("");
   const [defaultRole, setDefaultRole] = useState("Software Engineer");
 
-  const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
-  const config = {
-    headers: {
-      "X-Poly-Secret": apiSecret,
-    },
-  };
-
   useEffect(() => {
     if (serverStatus === "ready") {
+      const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
+      const config = {
+        headers: {
+          "X-Poly-Secret": apiSecret,
+        },
+      };
       // --- Fetch Questions ---
       axios
         .get(`${apiUrl}/questions`, config)
