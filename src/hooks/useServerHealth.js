@@ -9,12 +9,6 @@ export function useServerHealth(apiUrl, maxWaitTime = 300000) {
 
   const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
 
-  const config = {
-    headers: {
-      "X-Poly-Secret": apiSecret,
-    },
-  };
-
   useEffect(() => {
     let isMounted = true;
     let timeoutId = null;
@@ -36,7 +30,12 @@ export function useServerHealth(apiUrl, maxWaitTime = 300000) {
       }
 
       try {
-        const res = await axios.get(`${apiUrl}/`, config, { timeout: 5000 });
+        const res = await axios.get(`${apiUrl}/`, {
+          headers: {
+            "X-Poly-Secret": apiSecret,
+          },
+          timeout: 5000,
+        });
         if (res.data.status === "OK") {
           if (isMounted) setServerStatus("ready");
           return;

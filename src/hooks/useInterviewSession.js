@@ -20,12 +20,6 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
 
   const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
 
-  const config = {
-    headers: {
-      "X-Poly-Secret": apiSecret,
-    },
-  };
-
   // 1. Skill Matching Stream (Triggered automatically when Resume or Role changes)
   useEffect(() => {
     if (serverStatus === "ready" && resumeText && targetRole) {
@@ -101,7 +95,11 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     formData.append("file", file);
 
     try {
-      const res = await axios.post(`${apiUrl}/upload_resume`, formData, config);
+      const res = await axios.post(`${apiUrl}/upload_resume`, formData, {
+        headers: {
+          "X-Poly-Secret": apiSecret,
+        },
+      });
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
     } catch (err) {
