@@ -7,6 +7,14 @@ export function useServerHealth(apiUrl, maxWaitTime = 300000) {
   const [retryTrigger, setRetryTrigger] = useState(0);
   const startTimeRef = useRef(null);
 
+  const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
+
+  const config = {
+    headers: {
+      "X-Poly-Secret": apiSecret,
+    },
+  };
+
   useEffect(() => {
     let isMounted = true;
     let timeoutId = null;
@@ -28,7 +36,7 @@ export function useServerHealth(apiUrl, maxWaitTime = 300000) {
       }
 
       try {
-        const res = await axios.get(`${apiUrl}/`, { timeout: 5000 });
+        const res = await axios.get(`${apiUrl}/`, config, { timeout: 5000 });
         if (res.data.status === "OK") {
           if (isMounted) setServerStatus("ready");
           return;

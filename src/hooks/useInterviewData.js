@@ -9,11 +9,18 @@ export function useInterviewData(apiUrl, serverStatus) {
   const [defaultQuestion, setDefaultQuestion] = useState("");
   const [defaultRole, setDefaultRole] = useState("Software Engineer");
 
+  const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
+  const config = {
+    headers: {
+      "X-Poly-Secret": apiSecret,
+    },
+  };
+
   useEffect(() => {
     if (serverStatus === "ready") {
       // --- Fetch Questions ---
       axios
-        .get(`${apiUrl}/questions`)
+        .get(`${apiUrl}/questions`, config)
         .then((res) => {
           const sorted = res.data.sort((a, b) => a.text.localeCompare(b.text));
           setQuestionBank(sorted);
@@ -23,7 +30,7 @@ export function useInterviewData(apiUrl, serverStatus) {
 
       // --- Fetch Roles ---
       axios
-        .get(`${apiUrl}/roles`)
+        .get(`${apiUrl}/roles`, config)
         .then((res) => {
           const roles = res.data;
           setAvailableRoles(roles);

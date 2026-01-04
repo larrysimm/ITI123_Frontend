@@ -18,6 +18,14 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
   const [result, setResult] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
 
+  const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
+
+  const config = {
+    headers: {
+      "X-Poly-Secret": apiSecret,
+    },
+  };
+
   // 1. Skill Matching Stream (Triggered automatically when Resume or Role changes)
   useEffect(() => {
     if (serverStatus === "ready" && resumeText && targetRole) {
@@ -30,7 +38,10 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
         try {
           const response = await fetch(`${apiUrl}/match_skills`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "X-Poly-Secret": apiSecret,
+            },
             body: JSON.stringify({
               resume_text: resumeText,
               target_role: targetRole,
@@ -81,6 +92,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
   // 2. Upload Handler
   const handleFileUpload = async (e) => {
     if (serverStatus !== "ready") return alert("Waiting for server...");
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -89,7 +101,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     formData.append("file", file);
 
     try {
-      const res = await axios.post(`${apiUrl}/upload_resume`, formData);
+      const res = await axios.post(`${apiUrl}/upload_resume`, formData, config);
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
     } catch (err) {
@@ -109,7 +121,10 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     try {
       const response = await fetch(`${apiUrl}/analyze_stream`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Poly-Secret": apiSecret,
+        },
         body: JSON.stringify({
           resume_text: resumeText,
           target_role: targetRole,
