@@ -147,7 +147,7 @@ export default function MainInterface({
 
               <div className="d-flex align-items-start">
                 <i className="bi bi-chat-quote-fill text-primary fs-3 me-3 opacity-50 mt-1"></i>
-                <div className="w-100 position-relative">
+                <div className="w-100 position-relative" ref={dropdownRef}>
                   {isCustomQuestion ? (
                     <div className="d-flex gap-2 align-items-center">
                       {/* Input Wrapper for the "Clear" button positioning */}
