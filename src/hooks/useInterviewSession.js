@@ -121,7 +121,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     setCurrentStep(1);
 
     try {
-      const response = await fetch(`${apiUrl}/api/interview/analyze_stream`, {
+      const response = await fetch(`${apiUrl}/api/interview/analyze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
