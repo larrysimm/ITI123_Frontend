@@ -208,6 +208,7 @@ export default function MainInterface({
             >
               <VoiceRecorder
                 apiUrl={apiUrl}
+                onRecordingStart={() => setAnswer("")}
                 onTranscriptionComplete={(text) => {
                   // Append text if there's already something, or just set it
                   setAnswer((prev) => (prev ? prev + " " + text : text));

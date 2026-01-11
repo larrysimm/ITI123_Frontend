@@ -1,14 +1,24 @@
 import React, { useState, useRef } from "react";
 
-const VoiceRecorder = ({ onTranscriptionComplete, apiUrl }) => {
+const VoiceRecorder = ({
+  onTranscriptionComplete,
+  apiUrl,
+  onRecordingStart,
+}) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
   const startRecording = async () => {
+    // 2. Trigger the clear function immediately when clicked
+    if (onRecordingStart) {
+      onRecordingStart();
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // ... rest of the code remains the same ...
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
