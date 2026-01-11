@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import ThinkingTrace from "../ThinkingTrace";
 import CollapsibleCard from "./CollapsibleCard";
