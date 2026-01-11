@@ -6,32 +6,27 @@ const VoiceRecorder = ({
   onRecordingStart,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [status, setStatus] = useState("idle"); // idle | recording | processing
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
   const startRecording = async () => {
-    // 2. Trigger the clear function immediately when clicked
-    if (onRecordingStart) {
-      onRecordingStart();
-    }
+    if (onRecordingStart) onRecordingStart();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // ... rest of the code remains the same ...
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
       mediaRecorder.onstop = handleStop;
       mediaRecorder.start();
       setIsRecording(true);
+      setStatus("recording");
     } catch (err) {
       console.error("Mic Error:", err);
       alert("Microphone access denied.");
@@ -42,7 +37,7 @@ const VoiceRecorder = ({
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      setIsProcessing(true);
+      setStatus("processing"); // Switch to processing state
     }
   };
 
@@ -52,8 +47,8 @@ const VoiceRecorder = ({
     formData.append("file", audioBlob, "recording.webm");
 
     try {
-      // 🔹 Sending to your RENDER Backend
-      const response = await fetch(`${apiUrl}/api/audio/transcribe`, {
+      const endpoint = `${apiUrl}/api/audio/transcribe`;
+      const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
       });
@@ -62,44 +57,53 @@ const VoiceRecorder = ({
 
       const data = await response.json();
       onTranscriptionComplete(data.transcription);
+      setStatus("idle"); // Done
     } catch (error) {
       console.error("Error:", error);
       alert("Audio transcription failed.");
+      setStatus("idle");
     } finally {
-      setIsProcessing(false);
-      // Stop mic stream to turn off red dot in browser
       mediaRecorderRef.current.stream.getTracks().forEach((t) => t.stop());
     }
   };
 
-  return (
-    <button
-      type="button"
-      onClick={isRecording ? stopRecording : startRecording}
-      disabled={isProcessing}
-      className={`btn btn-sm ${isRecording ? "btn-danger" : "btn-light"}`}
-      title={isRecording ? "Stop Recording" : "Start Recording"}
-      style={{
-        borderRadius: "50%",
-        width: "40px",
-        height: "40px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-        transition: "all 0.2s",
-      }}
-    >
-      {isProcessing ? (
+  // --- RENDERING THE BUTTON ---
+
+  if (status === "processing") {
+    return (
+      <button
+        className="btn btn-primary rounded-circle shadow"
+        style={{ width: 50, height: 50 }}
+        disabled
+      >
         <span
           className="spinner-border spinner-border-sm"
           role="status"
           aria-hidden="true"
         ></span>
-      ) : isRecording ? (
-        <i className="bi bi-stop-fill"></i>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={isRecording ? stopRecording : startRecording}
+      className={`btn shadow ${isRecording ? "btn-danger" : "btn-light"}`}
+      style={{
+        borderRadius: "50%",
+        width: "50px",
+        height: "50px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        border: isRecording ? "3px solid #ffcccc" : "1px solid #ddd",
+      }}
+    >
+      {isRecording ? (
+        <i className="bi bi-stop-fill fs-4"></i>
       ) : (
-        <i className="bi bi-mic-fill text-primary"></i>
+        <i className="bi bi-mic-fill fs-4 text-primary"></i>
       )}
     </button>
   );
