@@ -25,6 +25,7 @@ export default function MainInterface({
   currentStep,
   handleResetPractice,
 }) {
+  const [isRecording, setIsRecording] = useState(false);
   const renderWithManualBold = (text) => {
     // Split the string whenever we see **something**
     const parts = text.split(/\*\*(.*?)\*\*/g);
