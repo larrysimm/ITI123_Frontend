@@ -80,6 +80,7 @@ export default function App() {
             <MainInterface
               logo={logo}
               targetRole={targetRole}
+              apiUrl={API_URL}
               setResumeName={session.setResumeName}
               setResumeText={session.setResumeText}
               question={question}

@@ -2,10 +2,12 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import ThinkingTrace from "../ThinkingTrace";
 import CollapsibleCard from "./CollapsibleCard";
+import VoiceRecorder from "./VoiceRecorder";
 
 export default function MainInterface({
   logo,
   targetRole,
+  apiUrl,
   setResumeName,
   setResumeText,
   question,
@@ -180,15 +182,41 @@ export default function MainInterface({
 
       {/* Answer Area */}
       <div className="mb-4">
-        <textarea
-          className="form-control p-4 shadow-sm"
-          rows="6"
-          placeholder={`Type your answer here...`}
-          style={{ resize: "none", borderRadius: "12px" }}
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-        ></textarea>
+        <div className="mb-4">
+          <h4 className="mb-3">Step 2: Your Answer</h4>
 
+          {/* WRAPPER DIV START */}
+          <div style={{ position: "relative" }}>
+            <textarea
+              className="form-control mb-3"
+              rows="6"
+              placeholder="e.g. I handled a difficult situation by..."
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              disabled={loading}
+              style={{ paddingBottom: "40px" }} // Add padding so text doesn't hide behind button
+            ></textarea>
+
+            {/* 🎤 VOICE RECORDER BUTTON */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: "25px",
+                right: "15px",
+                zIndex: 10,
+              }}
+            >
+              <VoiceRecorder
+                apiUrl={apiUrl}
+                onTranscriptionComplete={(text) => {
+                  // Append text if there's already something, or just set it
+                  setAnswer((prev) => (prev ? prev + " " + text : text));
+                }}
+              />
+            </div>
+          </div>
+          {/* WRAPPER DIV END */}
+        </div>
         <div className="d-flex justify-content-between align-items-center mt-3">
           {/* 1. Clear / Reset Button */}
           <button
