@@ -92,7 +92,10 @@ export default function App() {
               setAnswer={setAnswer}
               // Wrapper to pass current question/answer to the hook
               handleAnalyzeStream={() =>
-                session.handleAnalyzeStream(question, answer)
+                session.handleAnalyzeStream(
+                  question,
+                  typeof manualAnswer === "string" ? manualAnswer : answer
+                )
               }
               isValidateDisabled={isValidateDisabled}
               loading={session.loading}
