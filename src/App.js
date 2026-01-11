@@ -91,7 +91,7 @@ export default function App() {
               answer={answer}
               setAnswer={setAnswer}
               // Wrapper to pass current question/answer to the hook
-              handleAnalyzeStream={() =>
+              handleAnalyzeStream={(manualAnswer) =>
                 session.handleAnalyzeStream(
                   question,
                   typeof manualAnswer === "string" ? manualAnswer : answer
