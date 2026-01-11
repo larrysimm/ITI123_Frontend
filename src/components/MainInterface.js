@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import ThinkingTrace from "../ThinkingTrace";
 import CollapsibleCard from "./CollapsibleCard";
@@ -25,6 +25,7 @@ export default function MainInterface({
   currentStep,
   handleResetPractice,
 }) {
+  const dropdownRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const renderWithManualBold = (text) => {
@@ -82,6 +83,21 @@ export default function MainInterface({
         );
       });
   };
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      // If the dropdown is open AND the click is NOT inside the dropdown container
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    // Bind the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Unbind the event listener on cleanup
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   return (
     <div className="container-fluid py-2" style={{ maxWidth: "1000px" }}>
