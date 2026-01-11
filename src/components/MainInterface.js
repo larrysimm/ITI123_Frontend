@@ -136,7 +136,7 @@ export default function MainInterface({
         <div className="col-12">
           <h4 className="fw-bold text-secondary mb-3">
             <i className="bi bi-1-circle-fill text-primary me-2"></i>
-            Step 1: The Challenge
+            The Challenge
           </h4>
 
           <div className="card border-0 shadow-sm bg-light">
@@ -265,7 +265,7 @@ export default function MainInterface({
         {/* ========================== */}
         <div className="col-12">
           <h4 className="fw-bold text-secondary mb-3">
-            <i className="bi bi-2-circle-fill text-primary me-2"></i>Step 2:
+            <i className="bi bi-2-circle-fill text-primary me-2"></i>
             Your Solution
           </h4>
 

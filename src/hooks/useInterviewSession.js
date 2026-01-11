@@ -90,13 +90,18 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (file.type !== "application/pdf") {
+      alert("❌ Invalid File: Please upload a PDF.");
+      return;
+    }
+
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
       const res = await axios.post(
-        `${apiUrl}/api/skills/upload_resume`,
+        `${apiUrl}/api/skills/upload_resume`, // Ensure this path matches your backend router
         formData,
         {
           headers: {
@@ -104,10 +109,29 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
           },
         }
       );
+
+      // Success Logic
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
+      console.log("✅ Resume Verified & Accepted");
     } catch (err) {
-      alert("Upload failed.");
+      console.error("Upload Error:", err);
+
+      // 2. NEW: Handle AI Rejection (400 Bad Request)
+      if (err.response && err.response.status === 400) {
+        // This 'detail' comes from the backend: "Uploaded file does not appear to be a resume..."
+        const aiMessage = err.response.data.detail;
+        alert(`⚠️ Upload Rejected:\n\n${aiMessage}`);
+
+        // Optional: Clear the input so they can try again
+        e.target.value = "";
+      }
+      // 3. Handle Generic Server Errors (500)
+      else if (err.response && err.response.status === 413) {
+        alert("❌ File is too large (Max 5MB).");
+      } else {
+        alert("❌ Server Error: Could not verify resume. Please try again.");
+      }
     } finally {
       setUploading(false);
     }
