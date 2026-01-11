@@ -19,7 +19,7 @@ export function useInterviewData(apiUrl, serverStatus) {
       };
       // --- Fetch Questions ---
       axios
-        .get(`${apiUrl}/interview/questions`, config)
+        .get(`${apiUrl}/api/interview/questions`, config)
         .then((res) => {
           const sorted = res.data.sort((a, b) => a.text.localeCompare(b.text));
           setQuestionBank(sorted);
@@ -29,7 +29,7 @@ export function useInterviewData(apiUrl, serverStatus) {
 
       // --- Fetch Roles ---
       axios
-        .get(`${apiUrl}/interview/roles`, config)
+        .get(`${apiUrl}/api/interview/roles`, config)
         .then((res) => {
           const roles = res.data;
           setAvailableRoles(roles);

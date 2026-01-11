@@ -30,7 +30,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
 
       const fetchSkillStream = async () => {
         try {
-          const response = await fetch(`${apiUrl}/skills/match_skills`, {
+          const response = await fetch(`${apiUrl}/api/skills/match_skills`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -95,11 +95,15 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     formData.append("file", file);
 
     try {
-      const res = await axios.post(`${apiUrl}/skills/upload_resume`, formData, {
-        headers: {
-          "X-Poly-Secret": apiSecret,
-        },
-      });
+      const res = await axios.post(
+        `${apiUrl}/api/skills/upload_resume`,
+        formData,
+        {
+          headers: {
+            "X-Poly-Secret": apiSecret,
+          },
+        }
+      );
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
     } catch (err) {
@@ -117,7 +121,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     setCurrentStep(1);
 
     try {
-      const response = await fetch(`${apiUrl}/interview/analyze_stream`, {
+      const response = await fetch(`${apiUrl}/api/interview/analyze_stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
