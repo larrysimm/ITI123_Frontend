@@ -26,6 +26,7 @@ export default function MainInterface({
   handleResetPractice,
 }) {
   const [isRecording, setIsRecording] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const renderWithManualBold = (text) => {
     // Split the string whenever we see **something**
     const parts = text.split(/\*\*(.*?)\*\*/g);
@@ -151,36 +152,72 @@ export default function MainInterface({
                       </button>
                     </div>
                   ) : (
-                    <select
-                      className="form-select form-select-lg border-0 bg-transparent fw-bold text-dark"
-                      style={{
-                        fontSize: "1.3rem",
-                        cursor: "pointer",
-                        paddingLeft: 0,
-                      }}
-                      value={question}
-                      onChange={(e) => {
-                        if (e.target.value === "CUSTOM_MODE") {
-                          setIsCustomQuestion(true);
-                          setQuestion("");
-                        } else {
-                          setQuestion(e.target.value);
-                        }
-                      }}
-                    >
-                      {questionBank.map((q, index) => (
-                        <option key={q.id} value={q.text}>
-                          {q.text}
-                        </option>
-                      ))}
-                      <option disabled>──────────────────────────</option>
-                      <option
-                        value="CUSTOM_MODE"
-                        className="text-primary fw-bold"
+                    <>
+                      {/* 1. The Trigger (Displays the wrapped text) */}
+                      <div
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        className="p-2 rounded d-flex justify-content-between align-items-center"
+                        style={{
+                          cursor: "pointer",
+                          border: showDropdown
+                            ? "1px solid #dee2e6"
+                            : "1px solid transparent",
+                          backgroundColor: showDropdown
+                            ? "white"
+                            : "transparent",
+                        }}
                       >
-                        ✎ Write my own question...
-                      </option>
-                    </select>
+                        <h3
+                          className="fw-bold text-dark mb-0 me-3"
+                          style={{ fontSize: "1.3rem", lineHeight: "1.4" }}
+                        >
+                          {question || "Select a question to begin..."}
+                        </h3>
+                        <i
+                          className={`bi bi-chevron-${
+                            showDropdown ? "up" : "down"
+                          } text-muted`}
+                        ></i>
+                      </div>
+
+                      {/* 2. The Dropdown List (Absolute Positioned) */}
+                      {showDropdown && (
+                        <div
+                          className="card border-0 shadow-lg position-absolute w-100 mt-2"
+                          style={{
+                            zIndex: 1000,
+                            maxHeight: "400px",
+                            overflowY: "auto",
+                          }}
+                        >
+                          <ul className="list-group list-group-flush">
+                            {questionBank.map((q) => (
+                              <button
+                                key={q.id}
+                                className="list-group-item list-group-item-action py-3 text-start"
+                                onClick={() => {
+                                  setQuestion(q.text);
+                                  setShowDropdown(false);
+                                }}
+                              >
+                                {q.text}
+                              </button>
+                            ))}
+                            {/* Option for Custom Question */}
+                            <button
+                              className="list-group-item list-group-item-action py-3 text-primary fw-bold text-start"
+                              onClick={() => {
+                                setIsCustomQuestion(true);
+                                setQuestion("");
+                                setShowDropdown(false);
+                              }}
+                            >
+                              ✎ Write my own question...
+                            </button>
+                          </ul>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
