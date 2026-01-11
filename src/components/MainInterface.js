@@ -126,34 +126,55 @@ export default function MainInterface({
           <div className="card border-0 shadow-sm bg-light">
             <div className="card-body p-4">
               <label className="form-label text-muted fw-bold text-uppercase small mb-3">
-                Select or Write your Question
+                Current Question
               </label>
 
               <div className="d-flex align-items-start">
                 <i className="bi bi-chat-quote-fill text-primary fs-3 me-3 opacity-50 mt-1"></i>
-                <div className="w-100">
+                <div className="w-100 position-relative">
                   {isCustomQuestion ? (
-                    <div className="d-flex gap-2">
-                      <input
-                        type="text"
-                        className="form-control form-control-lg border-0 bg-white shadow-sm fw-bold text-dark"
-                        style={{ fontSize: "1.2rem" }}
-                        value={question}
-                        autoFocus
-                        onChange={(e) => setQuestion(e.target.value)}
-                        placeholder="Type your own custom question here..."
-                      />
+                    <div className="d-flex gap-2 align-items-center">
+                      {/* Input Wrapper for the "Clear" button positioning */}
+                      <div className="position-relative w-100">
+                        <input
+                          type="text"
+                          className="form-control form-control-lg border-0 bg-white shadow-sm fw-bold text-dark pe-5" // pe-5 adds padding for the X
+                          style={{ fontSize: "1.2rem" }}
+                          value={question}
+                          autoFocus
+                          onChange={(e) => setQuestion(e.target.value)}
+                          placeholder="Type your own custom question here..."
+                        />
+
+                        {/* ❌ Clear Text Button (Only shows when typing) */}
+                        {question.length > 0 && (
+                          <button
+                            onClick={() => setQuestion("")}
+                            className="btn btn-sm text-muted position-absolute top-50 end-0 translate-middle-y me-2"
+                            style={{
+                              zIndex: 5,
+                              background: "transparent",
+                              border: "none",
+                            }}
+                            title="Clear text"
+                          >
+                            <i className="bi bi-x-circle-fill fs-5"></i>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 🔙 Navigation Button */}
                       <button
-                        className="btn btn-outline-secondary"
+                        className="btn btn-outline-secondary text-nowrap px-3 shadow-sm bg-white"
                         onClick={() => setIsCustomQuestion(false)}
-                        title="Back to Question Bank"
+                        title="Return to Question Bank"
                       >
-                        <i className="bi bi-x-lg"></i>
+                        <i className="bi bi-arrow-left me-2"></i> Back to List
                       </button>
                     </div>
                   ) : (
+                    // --- DROPDOWN LOGIC (UNCHANGED) ---
                     <>
-                      {/* 1. The Trigger (Displays the wrapped text) */}
                       <div
                         onClick={() => setShowDropdown(!showDropdown)}
                         className="p-2 rounded d-flex justify-content-between align-items-center"
@@ -180,7 +201,6 @@ export default function MainInterface({
                         ></i>
                       </div>
 
-                      {/* 2. The Dropdown List (Absolute Positioned) */}
                       {showDropdown && (
                         <div
                           className="card border-0 shadow-lg position-absolute w-100 mt-2"
@@ -203,7 +223,6 @@ export default function MainInterface({
                                 {q.text}
                               </button>
                             ))}
-                            {/* Option for Custom Question */}
                             <button
                               className="list-group-item list-group-item-action py-3 text-primary fw-bold text-start"
                               onClick={() => {
