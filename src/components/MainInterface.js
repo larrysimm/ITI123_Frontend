@@ -192,33 +192,35 @@ export default function MainInterface({
         {/* ========================== */}
         <div className="col-12">
           <h4 className="fw-bold text-secondary mb-3">
-            <i className="bi bi-2-circle-fill text-primary me-2"></i>
-            Step 2: Your Solution
+            <i className="bi bi-2-circle-fill text-primary me-2"></i>Step 2:
+            Your Solution
           </h4>
 
           <div className="card border-0 shadow-sm">
             <div className="card-body p-0">
-              {/* Wrapper */}
               <div style={{ position: "relative" }}>
                 <textarea
                   className="form-control border-0 p-4"
                   rows="8"
-                  // 🔒 1. CHANGE PLACEHOLDER & DISABLE TYPING
-                  placeholder="Typing is disabled. Use the microphone to answer..."
+                  // 2. Logic: Disable ONLY if recording or analyzing
+                  disabled={loading || isRecording}
+                  placeholder={
+                    isRecording
+                      ? "Listening..."
+                      : "Start speaking or type your answer here..."
+                  }
                   value={answer}
-                  readOnly={true} // <--- Prevents typing
+                  onChange={(e) => setAnswer(e.target.value)}
                   style={{
                     fontSize: "1.1rem",
                     lineHeight: "1.6",
                     resize: "none",
                     borderRadius: "10px 10px 0 0",
                     color: "#333",
-                    backgroundColor: "#f8f9fa", // Light gray to indicate "Read Only"
-                    cursor: "not-allowed", // Shows 'stop' cursor on hover
+                    backgroundColor: isRecording ? "#f0f2f5" : "#fff",
                   }}
                 ></textarea>
 
-                {/* 🎤 Voice Recorder */}
                 <div
                   style={{
                     position: "absolute",
@@ -229,41 +231,62 @@ export default function MainInterface({
                 >
                   <VoiceRecorder
                     apiUrl={apiUrl}
-                    // Clear old answer when recording starts
-                    onRecordingStart={() => setAnswer("")}
-                    // 🚀 2. AUTO-SUBMIT LOGIC
+                    // 3. Update 'isRecording' state
+                    onRecordingStart={() => {
+                      setAnswer("");
+                      setIsRecording(true); // Lock the text box
+                    }}
                     onTranscriptionComplete={(text) => {
-                      setAnswer(text); // Show text in the box
-
-                      // Trigger validation immediately with the NEW text
-                      // (Passing 'text' directly solves the async state issue)
-                      handleAnalyzeStream(text);
+                      setIsRecording(false); // Unlock the text box
+                      setAnswer(text); // Update text
+                      handleAnalyzeStream(text); // 🚀 Auto-submit!
                     }}
                   />
                 </div>
               </div>
 
-              {/* Action Bar */}
+              {/* ACTION BAR: Show "Validate" button for manual typists */}
               <div className="bg-light p-3 rounded-bottom d-flex align-items-center justify-content-between border-top">
-                {/* Status Message */}
-                <div className="text-muted small fst-italic">
-                  {loading ? (
-                    <span className="text-primary fw-bold">
-                      <span className="spinner-border spinner-border-sm me-2"></span>
-                      AI is analyzing your voice answer...
-                    </span>
-                  ) : answer.length > 0 ? (
-                    "✅ Answer recorded & submitted."
-                  ) : (
-                    "waiting for audio..."
-                  )}
-                </div>
+                <button
+                  className="btn btn-link text-muted text-decoration-none btn-sm"
+                  onClick={() => {
+                    if (window.confirm("Clear your answer?")) setAnswer("");
+                  }}
+                  disabled={!answer.trim() || loading || isRecording}
+                >
+                  <i className="bi bi-trash me-1"></i> Clear
+                </button>
 
-                {/* Word Count */}
-                <div className="text-muted small fw-bold">
-                  {answer.trim().length > 0
-                    ? `${answer.trim().split(/\s+/).length} words`
-                    : "0 words"}
+                <div className="d-flex align-items-center gap-3">
+                  <div className="text-muted small">
+                    {isRecording ? (
+                      <span className="text-danger fw-bold animate__animated animate__flash animate__infinite">
+                        ● Recording...
+                      </span>
+                    ) : answer.trim().length > 0 ? (
+                      `${answer.trim().split(/\s+/).length} words`
+                    ) : (
+                      ""
+                    )}
+                  </div>
+
+                  <button
+                    className="btn btn-primary px-4 py-2 rounded-pill shadow-sm fw-bold"
+                    onClick={() => handleAnalyzeStream(null)} // Manual click passes null, so App.js uses 'answer' state
+                    disabled={isValidateDisabled || loading || isRecording}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        Validate Answer{" "}
+                        <i className="bi bi-arrow-right ms-2"></i>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
