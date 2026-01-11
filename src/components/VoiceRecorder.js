@@ -28,7 +28,6 @@ const VoiceRecorder = ({
       setIsRecording(true);
       setStatus("recording");
     } catch (err) {
-      console.error("Mic Error:", err);
       alert("Microphone access denied.");
     }
   };
@@ -59,7 +58,6 @@ const VoiceRecorder = ({
       onTranscriptionComplete(data.transcription);
       setStatus("idle"); // Done
     } catch (error) {
-      console.error("Error:", error);
       alert("Audio transcription failed.");
       setStatus("idle");
     } finally {

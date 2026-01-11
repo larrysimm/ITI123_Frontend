@@ -113,10 +113,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
       // Success Logic
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
-      console.log("✅ Resume Verified & Accepted");
     } catch (err) {
-      console.error("Upload Error:", err);
-
       // 2. NEW: Handle AI Rejection (400 Bad Request)
       if (err.response && err.response.status === 400) {
         // This 'detail' comes from the backend: "Uploaded file does not appear to be a resume..."
