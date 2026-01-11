@@ -27,11 +27,8 @@ export default function MainInterface({
 }) {
   const renderWithManualBold = (text) => {
     // Split the string whenever we see **something**
-    // The regex captures the text inside the asterisks
     const parts = text.split(/\*\*(.*?)\*\*/g);
-
     return parts.map((part, index) => {
-      // Odd indices (1, 3, 5...) are the text that was inside ** **
       if (index % 2 === 1) {
         return (
           <span key={index} style={{ fontWeight: "800", color: "black" }}>
@@ -39,7 +36,6 @@ export default function MainInterface({
           </span>
         );
       }
-      // Even indices are normal text
       return <span key={index}>{part}</span>;
     });
   };
@@ -47,26 +43,20 @@ export default function MainInterface({
   const formatStarResponse = (text) => {
     if (!text) return null;
 
-    // 1. CLEANUP: Remove asterisks specifically from the headers
-    // Transforms "**Situation:**" -> "Situation:"
     let cleanText = text
       .replace(/\*\*Situation:?\*\*/g, "Situation:")
       .replace(/\*\*Task:?\*\*/g, "Task:")
       .replace(/\*\*Action:?\*\*/g, "Action:")
       .replace(/\*\*Result:?\*\*/g, "Result:")
-      // Also catch cases where AI forgets the colon inside the bold
       .replace(/\*\*Situation\*\*:?/g, "Situation:")
       .replace(/\*\*Task\*\*:?/g, "Task:")
       .replace(/\*\*Action\*\*:?/g, "Action:")
       .replace(/\*\*Result\*\*:?/g, "Result:");
 
-    // 2. SPLIT & RENDER
     return cleanText
       .split(/(Situation:|Task:|Action:|Result:)/g)
       .map((part, index) => {
         const trimmed = part.trim();
-
-        // A. Header (Green & Bold)
         if (["Situation:", "Task:", "Action:", "Result:"].includes(trimmed)) {
           return (
             <div
@@ -78,11 +68,7 @@ export default function MainInterface({
             </div>
           );
         }
-
-        // B. Empty strings
         if (!trimmed) return null;
-
-        // C. Body Text (with manual bold support)
         return (
           <div
             key={index}
@@ -96,258 +82,310 @@ export default function MainInterface({
   };
 
   return (
-    <>
-      <div className="d-flex align-items-center justify-content-between mb-4">
-        <div className="d-flex align-items-center">
-          {/* Logo with margin-end (me-3) for spacing */}
-          <img
-            src={logo}
-            alt="App Logo"
-            style={{ height: "72px" }}
-            className="me-3"
-          />
-
-          {/* Text Wrapper: Keeps Title and Subtitle stacked vertically */}
-          <div>
-            <h1 className="display-6 fw-bold text-dark m-0">
-              Interview Architect
-            </h1>
-            <small className="text-muted">
-              Optimizing answers for <strong>{targetRole}</strong>
-            </small>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            setResumeName("");
-            setResumeText("");
-          }}
-          className="btn btn-sm btn-outline-secondary"
-        >
-          <i className="bi bi-arrow-counterclockwise me-1"></i> Change Resume
-        </button>
-      </div>
-
-      {/* Question Selection */}
-      <div className="mb-4">
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-2">
-            {!isCustomQuestion ? (
-              <select
-                className="form-select border-0 fw-bold text-secondary"
-                style={{ fontSize: "1.1rem" }}
-                value={question}
-                onChange={(e) => {
-                  if (e.target.value === "CUSTOM_MODE") {
-                    setIsCustomQuestion(true);
-                    setQuestion("");
-                  } else {
-                    setQuestion(e.target.value);
-                  }
-                }}
-              >
-                {questionBank.map((q, index) => (
-                  <option key={q.id} value={q.text}>
-                    {index + 1}. {q.text}
-                  </option>
-                ))}
-
-                <option disabled>──────────────────────────</option>
-                <option value="CUSTOM_MODE">✎ Type a custom question...</option>
-              </select>
-            ) : (
-              <div className="d-flex gap-2">
-                <button
-                  className="btn btn-light border text-muted"
-                  onClick={() => {
-                    setIsCustomQuestion(false);
-                    if (questionBank.length > 0)
-                      setQuestion(questionBank[0].text);
-                  }}
-                >
-                  <i className="bi bi-arrow-left"></i>
-                </button>
-                <input
-                  className="form-control border-0 fw-bold text-secondary"
-                  placeholder="Type your question..."
-                  value={question}
-                  autoFocus
-                  onChange={(e) => setQuestion(e.target.value)}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Answer Area */}
-      <div className="mb-4">
-        <div className="mb-4">
-          <h4 className="mb-3">Step 2: Your Answer</h4>
-
-          {/* WRAPPER DIV START */}
-          <div style={{ position: "relative" }}>
-            <textarea
-              className="form-control mb-3"
-              rows="6"
-              placeholder="e.g. I handled a difficult situation by..."
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              disabled={loading}
-              style={{ paddingBottom: "40px" }} // Add padding so text doesn't hide behind button
-            ></textarea>
-
-            {/* 🎤 VOICE RECORDER BUTTON */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: "25px",
-                right: "15px",
-                zIndex: 10,
-              }}
-            >
-              <VoiceRecorder
-                apiUrl={apiUrl}
-                onRecordingStart={() => setAnswer("")}
-                onTranscriptionComplete={(text) => {
-                  // Append text if there's already something, or just set it
-                  setAnswer((prev) => (prev ? prev + " " + text : text));
-                }}
-              />
-            </div>
-          </div>
-          {/* WRAPPER DIV END */}
-        </div>
-        <div className="d-flex justify-content-between align-items-center mt-3">
-          {/* 1. Clear / Reset Button */}
+    <div className="container-fluid py-2" style={{ maxWidth: "1000px" }}>
+      {/* --- HEADER SECTION --- */}
+      <div className="text-center mb-5">
+        <img
+          src={logo}
+          alt="Logo"
+          style={{ height: "60px", marginBottom: "15px" }}
+        />
+        <h2 className="fw-bold text-dark mb-1">Mock Interview Session</h2>
+        <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
+          Target Role: {targetRole}
+        </span>
+        <div className="mt-3">
           <button
-            className="btn btn-link text-muted text-decoration-none btn-sm"
             onClick={() => {
               if (
-                window.confirm("Are you sure you want to clear your answer?")
+                window.confirm("Change Resume? This will reset your session.")
               ) {
-                setAnswer("");
+                setResumeName("");
+                setResumeText("");
               }
             }}
-            disabled={!answer.trim() || loading} // Disable if empty
+            className="btn btn-sm btn-link text-muted text-decoration-none"
           >
-            <i className="bi bi-trash me-1"></i> Clear
+            <i className="bi bi-arrow-counterclockwise me-1"></i> Switch Resume
           </button>
-          <button
-            onClick={handleAnalyzeStream}
-            // 1. DISABLE ATTRIBUTE
-            disabled={isValidateDisabled || loading}
-            // 2. VISUAL FEEDBACK (Bootstrap classes)
-            className={`btn w-100 py-3 fw-bold shadow-sm transition-all ${
-              isValidateDisabled
-                ? "btn-secondary opacity-50 cursor-not-allowed"
-                : "btn-primary"
-            }`}
-            style={{ borderRadius: "12px" }}
-          >
-            {loading ? (
-              <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-                Analyzing Response...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-patch-check-fill me-2"></i>
-                Validate Answer
-              </>
-            )}
-          </button>
+        </div>
+      </div>
+
+      <div className="row g-5">
+        {/* ========================== */}
+        {/* STEP 1: THE CHALLENGE      */}
+        {/* ========================== */}
+        <div className="col-12">
+          <h4 className="fw-bold text-secondary mb-3">
+            <i className="bi bi-1-circle-fill text-primary me-2"></i>
+            Step 1: The Challenge
+          </h4>
+
+          <div className="card border-0 shadow-sm bg-light">
+            <div className="card-body p-4">
+              <label className="form-label text-muted fw-bold text-uppercase small mb-3">
+                Select or Write your Question
+              </label>
+
+              <div className="d-flex align-items-start">
+                <i className="bi bi-chat-quote-fill text-primary fs-3 me-3 opacity-50 mt-1"></i>
+                <div className="w-100">
+                  {isCustomQuestion ? (
+                    <div className="d-flex gap-2">
+                      <input
+                        type="text"
+                        className="form-control form-control-lg border-0 bg-white shadow-sm fw-bold text-dark"
+                        style={{ fontSize: "1.2rem" }}
+                        value={question}
+                        autoFocus
+                        onChange={(e) => setQuestion(e.target.value)}
+                        placeholder="Type your own custom question here..."
+                      />
+                      <button
+                        className="btn btn-outline-secondary"
+                        onClick={() => setIsCustomQuestion(false)}
+                        title="Back to Question Bank"
+                      >
+                        <i className="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      className="form-select form-select-lg border-0 bg-transparent fw-bold text-dark"
+                      style={{
+                        fontSize: "1.3rem",
+                        cursor: "pointer",
+                        paddingLeft: 0,
+                      }}
+                      value={question}
+                      onChange={(e) => {
+                        if (e.target.value === "CUSTOM_MODE") {
+                          setIsCustomQuestion(true);
+                          setQuestion("");
+                        } else {
+                          setQuestion(e.target.value);
+                        }
+                      }}
+                    >
+                      {questionBank.map((q, index) => (
+                        <option key={q.id} value={q.text}>
+                          {q.text}
+                        </option>
+                      ))}
+                      <option disabled>──────────────────────────</option>
+                      <option
+                        value="CUSTOM_MODE"
+                        className="text-primary fw-bold"
+                      >
+                        ✎ Write my own question...
+                      </option>
+                    </select>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================== */}
+        {/* STEP 2: YOUR SOLUTION      */}
+        {/* ========================== */}
+        <div className="col-12">
+          <h4 className="fw-bold text-secondary mb-3">
+            <i className="bi bi-2-circle-fill text-primary me-2"></i>
+            Step 2: Your Solution
+          </h4>
+
+          <div className="card border-0 shadow-sm">
+            <div className="card-body p-0">
+              {/* Wrapper for Textarea + Mic */}
+              <div style={{ position: "relative" }}>
+                <textarea
+                  className="form-control border-0 p-4"
+                  rows="8"
+                  placeholder="Start speaking or type your answer here..."
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  disabled={loading}
+                  style={{
+                    fontSize: "1.1rem",
+                    lineHeight: "1.6",
+                    resize: "none",
+                    borderRadius: "10px 10px 0 0", // Rounded top only
+                    color: "#333",
+                    backgroundColor: "#fff",
+                  }}
+                ></textarea>
+
+                {/* 🎤 Voice Recorder Button - Bottom Right */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "20px",
+                    right: "20px",
+                    zIndex: 10,
+                  }}
+                >
+                  <VoiceRecorder
+                    apiUrl={apiUrl}
+                    onRecordingStart={() => setAnswer("")}
+                    onTranscriptionComplete={(text) => {
+                      // Logic: Append if existing, or just set if empty
+                      setAnswer((prev) => (prev ? prev + " " + text : text));
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Action Bar (Gray background at bottom of card) */}
+              <div className="bg-light p-3 rounded-bottom d-flex align-items-center justify-content-between border-top">
+                {/* Left: Clear Button */}
+                <button
+                  className="btn btn-link text-muted text-decoration-none btn-sm"
+                  onClick={() => {
+                    if (window.confirm("Clear your answer?")) setAnswer("");
+                  }}
+                  disabled={!answer.trim() || loading}
+                >
+                  <i className="bi bi-trash me-1"></i> Clear
+                </button>
+
+                <div className="d-flex align-items-center gap-3">
+                  {/* Word Count */}
+                  <div className="text-muted small">
+                    {answer.trim().length > 0
+                      ? `${answer.trim().split(/\s+/).length} words`
+                      : ""}
+                  </div>
+
+                  {/* Validate Button */}
+                  <button
+                    className="btn btn-primary px-4 py-2 rounded-pill shadow-sm fw-bold"
+                    onClick={handleAnalyzeStream}
+                    disabled={isValidateDisabled || loading}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        Validate Answer{" "}
+                        <i className="bi bi-arrow-right ms-2"></i>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Helper Text below button */}
           {isValidateDisabled && !loading && (
-            <div className="text-center mt-2">
+            <div className="text-end mt-2 me-2">
               <small className="text-muted fst-italic">
                 {!skillAnalysis
-                  ? "* Please wait for the Skill Gap Analysis first."
+                  ? "* Analysis pending..."
                   : !question.trim()
-                  ? "* Please enter a question."
-                  : "* Please type an answer to validate."}
+                  ? "* Select a question first"
+                  : "* Answer is empty"}
               </small>
             </div>
           )}
         </div>
+
+        {/* ========================== */}
+        {/* STEP 3: FEEDBACK / RESULTS */}
+        {/* ========================== */}
+
+        {/* SHOW TRACE: While loading OR if we have a finished trace */}
+        {(loading || result?.manager_thinking) && (
+          <div className="col-12 mt-4">
+            <ThinkingTrace
+              currentStep={loading ? currentStep : 100}
+              managerThinking={result?.manager_thinking}
+              coachThinking={result?.coach_thinking}
+            />
+          </div>
+        )}
+
+        {/* FINAL RESULTS */}
+        {result && !loading && (
+          <div className="col-12 animate__animated animate__fadeInUp">
+            <div className="d-flex align-items-center mb-4 mt-5">
+              <div className="flex-grow-1 border-bottom"></div>
+              <h3 className="mx-3 text-center fw-bold text-success">
+                <i className="bi bi-stars me-2"></i> Analysis Results
+              </h3>
+              <div className="flex-grow-1 border-bottom"></div>
+            </div>
+
+            <div className="row g-4 pb-5">
+              {/* 1. Manager's Gaps (Red) */}
+              <div className="col-12">
+                <CollapsibleCard
+                  title="Manager's Gaps"
+                  icon="bi-exclamation-octagon-fill"
+                  bgClass="bg-danger-subtle"
+                  textClass="text-danger-emphasis"
+                  borderClass="border-danger-subtle"
+                  defaultOpen={true}
+                >
+                  <div className="markdown-body text-secondary">
+                    <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
+                  </div>
+                </CollapsibleCard>
+              </div>
+
+              {/* 2. Structure Critique (Yellow) */}
+              <div className="col-12">
+                <CollapsibleCard
+                  title="Structure Critique"
+                  icon="bi-lightbulb-fill"
+                  bgClass="bg-warning-subtle"
+                  textClass="text-warning-emphasis"
+                  borderClass="border-warning-subtle"
+                  defaultOpen={true}
+                >
+                  <div className="markdown-body text-secondary">
+                    <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
+                  </div>
+                </CollapsibleCard>
+              </div>
+
+              {/* 3. Architected Response (Green) */}
+              <div className="col-12">
+                <CollapsibleCard
+                  title="Architected Response"
+                  icon="bi-patch-check-fill"
+                  bgClass="bg-success-subtle"
+                  textClass="text-success-emphasis"
+                  borderClass="border-success-subtle"
+                  defaultOpen={true}
+                >
+                  <div
+                    className="card-text text-dark"
+                    style={{ lineHeight: "1.7", fontSize: "1.05rem" }}
+                  >
+                    {formatStarResponse(result.rewritten_answer)}
+                  </div>
+                </CollapsibleCard>
+              </div>
+
+              <div className="text-center mt-4">
+                <button
+                  className="btn btn-outline-primary btn-lg px-5 shadow-sm rounded-pill"
+                  onClick={handleResetPractice}
+                >
+                  <i className="bi bi-arrow-repeat me-2"></i> Practice Another
+                  Question
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* SHOW TRACE: While loading OR if we have a finished trace */}
-      {(loading || result?.manager_thinking) && (
-        <ThinkingTrace
-          // If loading is done, force step to 100 so all items show as "Checked/Completed"
-          currentStep={loading ? currentStep : 100}
-          managerThinking={result?.manager_thinking}
-          coachThinking={result?.coach_thinking}
-        />
-      )}
-
-      {result && !loading && (
-        <div className="row g-4 pb-5">
-          {/* 1. Manager's Gaps (Red/Danger Theme) */}
-          <div className="col-12">
-            <CollapsibleCard
-              title="Manager's Gaps"
-              icon="bi-exclamation-octagon-fill"
-              bgClass="bg-danger-subtle"
-              textClass="text-danger-emphasis"
-              borderClass="border-danger-subtle"
-              defaultOpen={true}
-            >
-              <div className="markdown-body text-secondary">
-                <ReactMarkdown>{result.manager_critique}</ReactMarkdown>
-              </div>
-            </CollapsibleCard>
-          </div>
-
-          {/* 2. Structure Critique (Yellow/Warning Theme) */}
-          <div className="col-12">
-            <CollapsibleCard
-              title="Structure Critique"
-              icon="bi-lightbulb-fill"
-              bgClass="bg-warning-subtle"
-              textClass="text-warning-emphasis"
-              borderClass="border-warning-subtle"
-              defaultOpen={true}
-            >
-              <div className="markdown-body text-secondary">
-                <ReactMarkdown>{result.coach_critique}</ReactMarkdown>
-              </div>
-            </CollapsibleCard>
-          </div>
-
-          {/* 3. Architected Response (Green/Success Theme) */}
-          <div className="col-12">
-            <CollapsibleCard
-              title="Architected Response"
-              icon="bi-patch-check-fill"
-              bgClass="bg-success-subtle"
-              textClass="text-success-emphasis"
-              borderClass="border-success-subtle"
-              defaultOpen={true}
-            >
-              <div
-                className="card-text text-dark"
-                style={{ lineHeight: "1.7", fontSize: "1.05rem" }}
-              >
-                {formatStarResponse(result.rewritten_answer)}
-              </div>
-            </CollapsibleCard>
-          </div>
-          <div className="text-center mt-5 mb-5 pb-5">
-            <button
-              className="btn btn-outline-primary btn-lg px-5 shadow-sm rounded-pill"
-              onClick={handleResetPractice}
-            >
-              <i className="bi bi-arrow-repeat me-2"></i> Practice Another
-              Question
-            </button>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }
