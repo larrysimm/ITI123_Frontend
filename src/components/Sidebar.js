@@ -28,7 +28,7 @@ export default function Sidebar({
             <img
               src={polyTitle}
               alt="Title"
-              style={{ height: "40px", width: "auto" }}
+              style={{ height: "80px", width: "auto" }}
             />
           )}
         </div>
