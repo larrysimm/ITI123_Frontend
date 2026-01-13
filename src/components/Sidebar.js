@@ -1,26 +1,25 @@
 import React from "react";
-// If you have a SidebarTrace component, keep the import:
-// import SidebarTrace from "../SidebarTrace";
+import SidebarTrace from "../SidebarTrace";
 
 export default function Sidebar({
   logo,
   polyTitle,
   serverStatus,
   setRetryTrigger,
-  elapsedTime,
+  elapsedTime, // <--- Used for the timer
   targetRole,
-  setTargetRole,
-  availableRoles,
+  setTargetRole, // <--- Used for the dropdown
+  availableRoles, // <--- Used for the dropdown
   resumeName,
   isAnalyzingProfile,
   skillAnalysis,
   skillStep,
-  onMobileClose, // NEW PROP
+  traceLogs,
+  onMobileClose,
 }) {
   return (
-    // REMOVED: style={{ height: "100vh" }} - The CSS class handles this now
     <div className="d-flex flex-column h-100 bg-white">
-      {/* 1. HEADER */}
+      {/* 1. HEADER & SERVER STATUS */}
       <div className="p-4 pb-3 border-bottom">
         <div className="mb-2 d-flex align-items-center gap-2">
           <img src={logo} alt="App Logo" style={{ height: "35px" }} />
@@ -46,10 +45,54 @@ export default function Sidebar({
           ></i>
           {serverStatus === "ready" ? "System Online" : serverStatus}
         </div>
+
+        {/* Server Waking Up Timer (elapsedTime) */}
+        {serverStatus !== "ready" && (
+          <div className="mt-2 text-center">
+            <small className="text-muted" style={{ fontSize: "0.75rem" }}>
+              {elapsedTime > 0
+                ? `Waking up server... (${elapsedTime}s)`
+                : "Connecting..."}
+            </small>
+            <div className="progress mt-1" style={{ height: "4px" }}>
+              <div
+                className="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+                role="progressbar"
+                style={{
+                  width: `${Math.min((elapsedTime / 100) * 100, 100)}%`,
+                }}
+              ></div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 3. SCROLLABLE CONTENT */}
-      <div className="p-4 pt-2 pb-5">
+      {/* 2. SCROLLABLE CONTENT */}
+      <div className="flex-grow-1 overflow-auto p-4 pt-2 pb-5">
+        {/* Role Selector (Uses setTargetRole & availableRoles) */}
+        <div className="mb-4 mt-3">
+          <label className="text-muted fw-bold small text-uppercase mb-2">
+            Target Role
+          </label>
+          <select
+            className="form-select border-0 bg-light fw-bold text-dark"
+            value={targetRole}
+            onChange={(e) => {
+              setTargetRole(e.target.value);
+              // Closes the mobile menu when a user picks a role
+              if (onMobileClose) onMobileClose();
+            }}
+            disabled={!!resumeName}
+          >
+            {availableRoles.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Skill Gap Analysis Section */}
         {resumeName && (
           <div className="animate__animated animate__fadeIn">
             <label
@@ -61,7 +104,7 @@ export default function Sidebar({
 
             <div className="card bg-white border shadow-sm">
               <div className="card-body p-3">
-                {/* 1. LOADING STATE */}
+                {/* LOADING STATE */}
                 {isAnalyzingProfile && (
                   <div className="text-center py-4">
                     <div className="spinner-border spinner-border-sm text-primary mb-2"></div>
@@ -71,22 +114,23 @@ export default function Sidebar({
                   </div>
                 )}
 
-                {/* 2. TRACE LOGS (Optional: Show if actively stepping through) */}
-                {/* Only show if we have logs and are NOT done yet, OR if explicitly requested */}
-                {isAnalyzingProfile && traceLogs && traceLogs.length > 0 && (
-                  <div className="mb-3 border-bottom pb-3">
-                    <SidebarTrace
-                      currentStep={skillStep}
-                      traceLogs={traceLogs}
-                    />
-                  </div>
-                )}
+                {/* TRACE LOGS */}
+                {isAnalyzingProfile &&
+                  traceLogs &&
+                  traceLogs.length > 0 &&
+                  SidebarTrace && (
+                    <div className="mb-3 border-bottom pb-3">
+                      <SidebarTrace
+                        currentStep={skillStep}
+                        traceLogs={traceLogs}
+                      />
+                    </div>
+                  )}
 
-                {/* 3. RESULTS DISPLAY */}
+                {/* RESULTS DISPLAY */}
                 {!isAnalyzingProfile &&
                   skillAnalysis &&
                   (() => {
-                    // Normalize Data Keys
                     const matchedList =
                       skillAnalysis.matched ||
                       skillAnalysis.matched_skills ||
@@ -97,20 +141,13 @@ export default function Sidebar({
                       skillAnalysis.missing_skills ||
                       [];
 
-                    // CHECK: Are both lists empty?
                     if (matchedList.length === 0 && missingList.length === 0) {
                       return (
                         <div className="text-center py-3">
                           <i className="bi bi-exclamation-circle text-muted fs-4"></i>
                           <p className="small text-muted mt-2">
                             No specific skill gaps found.
-                            <br />
-                            <span style={{ fontSize: "10px" }}>
-                              (Debug: Received data, but lists are empty)
-                            </span>
                           </p>
-                          {/* DEBUG: Uncomment to see raw data if it's failing */}
-                          {/* <pre className="text-start bg-light p-2 small">{JSON.stringify(skillAnalysis, null, 2)}</pre> */}
                         </div>
                       );
                     }
@@ -126,7 +163,7 @@ export default function Sidebar({
                           </small>
                         </div>
 
-                        {/* MATCHED SKILLS */}
+                        {/* Verified Matches */}
                         {matchedList.length > 0 && (
                           <div className="mb-3">
                             <h6 className="small fw-bold text-success mb-2">
@@ -150,7 +187,7 @@ export default function Sidebar({
                           </div>
                         )}
 
-                        {/* MISSING SKILLS */}
+                        {/* Critical Gaps */}
                         {missingList.length > 0 && (
                           <div>
                             <h6 className="small fw-bold text-danger mb-2">
@@ -185,7 +222,7 @@ export default function Sidebar({
                     );
                   })()}
 
-                {/* 4. FALLBACK: If NOT analyzing but NO data exists */}
+                {/* Fallback */}
                 {!isAnalyzingProfile && !skillAnalysis && (
                   <div className="text-center py-3 text-muted small">
                     No analysis data available.
