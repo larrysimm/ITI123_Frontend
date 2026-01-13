@@ -1,6 +1,6 @@
 import React from "react";
-// Ensure this import exists. If you don't have this file, delete this line.
-import SidebarTrace from "../SidebarTrace";
+// FIX: Import from the same folder (./) not parent (../)
+import SidebarTrace from "./SidebarTrace";
 
 export default function Sidebar({
   logo,
@@ -47,7 +47,7 @@ export default function Sidebar({
           {serverStatus === "ready" ? "System Online" : serverStatus}
         </div>
 
-        {/* Server Waking Up Timer */}
+        {/* Server Timer */}
         {serverStatus !== "ready" && (
           <div className="mt-2 text-center">
             <small className="text-muted" style={{ fontSize: "0.75rem" }}>
@@ -104,33 +104,35 @@ export default function Sidebar({
 
             <div className="card bg-white border shadow-sm">
               <div className="card-body p-3">
-                {/* A. LOADING STATE */}
+                {/* REMOVED THE SPINNER BLOCK HERE 
+                   (Per your request: "I don't want the AI is analysing spinning")
+                */}
+
+                {/* SHOW TRACE LOGS (Thinking Process) */}
                 {isAnalyzingProfile && (
-                  <div className="text-center py-4">
-                    <div className="spinner-border spinner-border-sm text-primary mb-2"></div>
-                    <p className="small text-muted mb-0">
-                      AI is analyzing your resume...
-                    </p>
+                  <div className="mb-3 border-bottom pb-3">
+                    <label className="small text-muted fw-bold mb-1">
+                      AI Thinking Process:
+                    </label>
+                    {/* Check if SidebarTrace exists before rendering to avoid crash */}
+                    {SidebarTrace ? (
+                      <SidebarTrace
+                        currentStep={skillStep}
+                        traceLogs={traceLogs || {}}
+                      />
+                    ) : (
+                      <div className="small text-danger">
+                        Error: SidebarTrace.js missing
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* B. TRACE LOGS (Thinking Process) */}
-                {isAnalyzingProfile &&
-                  traceLogs &&
-                  traceLogs.length > 0 &&
-                  SidebarTrace && (
-                    <div className="mb-3 border-bottom pb-3">
-                      <SidebarTrace
-                        currentStep={skillStep}
-                        traceLogs={traceLogs}
-                      />
-                    </div>
-                  )}
-
-                {/* C. RESULTS DISPLAY */}
+                {/* RESULTS DISPLAY */}
                 {!isAnalyzingProfile &&
                   skillAnalysis &&
                   (() => {
+                    // Extract Lists safely
                     const matchedList =
                       skillAnalysis.matched ||
                       skillAnalysis.matched_skills ||
@@ -141,17 +143,12 @@ export default function Sidebar({
                       skillAnalysis.missing_skills ||
                       [];
 
-                    // 1. <--- ADDED: Handle case where AI returns empty lists
                     if (matchedList.length === 0 && missingList.length === 0) {
                       return (
                         <div className="text-center py-3">
                           <i className="bi bi-exclamation-circle text-muted fs-4"></i>
                           <p className="small text-muted mt-2">
                             No specific skill gaps found.
-                            <br />
-                            <span style={{ fontSize: "10px" }}>
-                              (Resume matches well)
-                            </span>
                           </p>
                         </div>
                       );
@@ -227,7 +224,7 @@ export default function Sidebar({
                     );
                   })()}
 
-                {/* D. <--- ADDED: FALLBACK (Handles "No Analysis Data Available") */}
+                {/* Fallback */}
                 {!isAnalyzingProfile && !skillAnalysis && (
                   <div className="text-center py-3 text-muted small">
                     No analysis data available.
