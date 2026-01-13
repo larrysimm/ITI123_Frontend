@@ -138,7 +138,6 @@ export function useInterviewSession(
       } else {
         alert("❌ Server Error: Could not verify resume. Please try again.");
       }
-      alert("Upload failed.");
     } finally {
       setUploading(false);
     }
