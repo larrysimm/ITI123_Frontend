@@ -25,7 +25,11 @@ export default function Sidebar({
         <div className="mb-2 d-flex align-items-center gap-2">
           <img src={logo} alt="App Logo" style={{ height: "35px" }} />
           {polyTitle && (
-            <img src={polyTitle} alt="Title" style={{ height: "24px" }} />
+            <img
+              src={polyTitle}
+              alt="Title"
+              style={{ height: "40px", width: "auto" }}
+            />
           )}
         </div>
 
