@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-export function useInterviewSession(apiUrl, serverStatus, targetRole) {
+// 1. FIX: Updated arguments to match App.js exactly
+export function useInterviewSession(
+  apiUrl,
+  questionBank, // Received but not currently used in this version (kept for compatibility)
+  targetRole,
+  setQuestion, // Received but not currently used in this version
+  setAnswer, // Received but not currently used in this version
+  serverStatus // This was missing/misaligned before!
+) {
   // --- Upload State ---
   const [uploading, setUploading] = useState(false);
   const [resumeName, setResumeName] = useState("");
@@ -20,8 +28,9 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
 
   const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
 
-  // 1. Skill Matching Stream (Triggered automatically when Resume or Role changes)
+  // 2. Skill Matching Stream (Triggered automatically when Resume or Role changes)
   useEffect(() => {
+    // FIX: Now 'serverStatus' is actually the string "ready", so this works
     if (serverStatus === "ready" && resumeText && targetRole) {
       setIsAnalyzingProfile(true);
       setSkillAnalysis(null);
@@ -61,12 +70,13 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
                   if (msg.message) {
                     setTraceLogs((prev) => ({
                       ...prev,
-                      [msg.step]: prev[msg.step] + "➜ " + msg.message + "\n",
+                      [msg.step]:
+                        (prev[msg.step] || "") + "➜ " + msg.message + "\n",
                     }));
                   }
                   if (msg.type === "result") {
                     setSkillStep(100);
-                    setSkillAnalysis(msg.data);
+                    setSkillAnalysis(msg.data); // This populates the Sidebar
                     setTimeout(() => setIsAnalyzingProfile(false), 2000);
                   }
                 } catch (e) {
@@ -76,6 +86,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
             }
           }
         } catch (err) {
+          console.error("Skill Stream Error:", err);
           setIsAnalyzingProfile(false);
         }
       };
@@ -83,10 +94,8 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     }
   }, [resumeText, targetRole, serverStatus, apiUrl, apiSecret]);
 
-  // 2. Upload Handler
+  // 3. Upload Handler
   const handleFileUpload = async (e) => {
-    // if (serverStatus !== "ready") return alert("Waiting for server...");
-
     const file = e.target.files[0];
     if (!file) return;
 
@@ -100,8 +109,9 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     formData.append("file", file);
 
     try {
+      // Ensure this endpoint matches your backend exactly
       const res = await axios.post(
-        `${apiUrl}/api/skills/upload_resume`, // Ensure this path matches your backend router
+        `${apiUrl}/api/skills/upload_resume`,
         formData,
         {
           headers: {
@@ -114,17 +124,11 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
     } catch (err) {
-      // 2. NEW: Handle AI Rejection (400 Bad Request)
       if (err.response && err.response.status === 400) {
-        // This 'detail' comes from the backend: "Uploaded file does not appear to be a resume..."
         const aiMessage = err.response.data.detail;
         alert(`⚠️ Upload Rejected:\n\n${aiMessage}`);
-
-        // Optional: Clear the input so they can try again
         e.target.value = "";
-      }
-      // 3. Handle Generic Server Errors (500)
-      else if (err.response && err.response.status === 413) {
+      } else if (err.response && err.response.status === 413) {
         alert("❌ File is too large (Max 5MB).");
       } else {
         alert("❌ Server Error: Could not verify resume. Please try again.");
@@ -134,7 +138,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
     }
   };
 
-  // 3. Answer Analysis Handler
+  // 4. Answer Analysis Handler
   const handleAnalyzeStream = async (question, answer) => {
     if (!resumeText) return;
     setLoading(true);
