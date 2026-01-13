@@ -1,4 +1,5 @@
 import React from "react";
+// Ensure this import exists. If you don't have this file, delete this line.
 import SidebarTrace from "../SidebarTrace";
 
 export default function Sidebar({
@@ -6,10 +7,10 @@ export default function Sidebar({
   polyTitle,
   serverStatus,
   setRetryTrigger,
-  elapsedTime, // <--- Used for the timer
+  elapsedTime,
   targetRole,
-  setTargetRole, // <--- Used for the dropdown
-  availableRoles, // <--- Used for the dropdown
+  setTargetRole,
+  availableRoles,
   resumeName,
   isAnalyzingProfile,
   skillAnalysis,
@@ -46,7 +47,7 @@ export default function Sidebar({
           {serverStatus === "ready" ? "System Online" : serverStatus}
         </div>
 
-        {/* Server Waking Up Timer (elapsedTime) */}
+        {/* Server Waking Up Timer */}
         {serverStatus !== "ready" && (
           <div className="mt-2 text-center">
             <small className="text-muted" style={{ fontSize: "0.75rem" }}>
@@ -69,7 +70,7 @@ export default function Sidebar({
 
       {/* 2. SCROLLABLE CONTENT */}
       <div className="flex-grow-1 overflow-auto p-4 pt-2 pb-5">
-        {/* Role Selector (Uses setTargetRole & availableRoles) */}
+        {/* Role Selector */}
         <div className="mb-4 mt-3">
           <label className="text-muted fw-bold small text-uppercase mb-2">
             Target Role
@@ -79,7 +80,6 @@ export default function Sidebar({
             value={targetRole}
             onChange={(e) => {
               setTargetRole(e.target.value);
-              // Closes the mobile menu when a user picks a role
               if (onMobileClose) onMobileClose();
             }}
             disabled={!!resumeName}
@@ -104,7 +104,7 @@ export default function Sidebar({
 
             <div className="card bg-white border shadow-sm">
               <div className="card-body p-3">
-                {/* LOADING STATE */}
+                {/* A. LOADING STATE */}
                 {isAnalyzingProfile && (
                   <div className="text-center py-4">
                     <div className="spinner-border spinner-border-sm text-primary mb-2"></div>
@@ -114,7 +114,7 @@ export default function Sidebar({
                   </div>
                 )}
 
-                {/* TRACE LOGS */}
+                {/* B. TRACE LOGS (Thinking Process) */}
                 {isAnalyzingProfile &&
                   traceLogs &&
                   traceLogs.length > 0 &&
@@ -127,7 +127,7 @@ export default function Sidebar({
                     </div>
                   )}
 
-                {/* RESULTS DISPLAY */}
+                {/* C. RESULTS DISPLAY */}
                 {!isAnalyzingProfile &&
                   skillAnalysis &&
                   (() => {
@@ -141,12 +141,17 @@ export default function Sidebar({
                       skillAnalysis.missing_skills ||
                       [];
 
+                    // 1. <--- ADDED: Handle case where AI returns empty lists
                     if (matchedList.length === 0 && missingList.length === 0) {
                       return (
                         <div className="text-center py-3">
                           <i className="bi bi-exclamation-circle text-muted fs-4"></i>
                           <p className="small text-muted mt-2">
                             No specific skill gaps found.
+                            <br />
+                            <span style={{ fontSize: "10px" }}>
+                              (Resume matches well)
+                            </span>
                           </p>
                         </div>
                       );
@@ -222,7 +227,7 @@ export default function Sidebar({
                     );
                   })()}
 
-                {/* Fallback */}
+                {/* D. <--- ADDED: FALLBACK (Handles "No Analysis Data Available") */}
                 {!isAnalyzingProfile && !skillAnalysis && (
                   <div className="text-center py-3 text-muted small">
                     No analysis data available.
