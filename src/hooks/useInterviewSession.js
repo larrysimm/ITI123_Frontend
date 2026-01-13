@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// 1. FIX: Updated arguments to match App.js exactly
+// FIX 1: ACCEPT ALL ARGUMENTS FROM APP.JS IN THE CORRECT ORDER
 export function useInterviewSession(
   apiUrl,
-  questionBank, // Received but not currently used in this version (kept for compatibility)
+  questionBank,
   targetRole,
-  setQuestion, // Received but not currently used in this version
-  setAnswer, // Received but not currently used in this version
-  serverStatus // This was missing/misaligned before!
+  setQuestion,
+  setAnswer,
+  serverStatus
 ) {
   // --- Upload State ---
   const [uploading, setUploading] = useState(false);
@@ -19,7 +19,7 @@ export function useInterviewSession(
   const [skillAnalysis, setSkillAnalysis] = useState(null);
   const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
   const [skillStep, setSkillStep] = useState(0);
-  const [traceLogs, setTraceLogs] = useState({ 1: "", 2: "", 3: "" });
+  const [traceLogs, setTraceLogs] = useState({}); // Keep as object for step mapping
 
   // --- Answer Analysis State ---
   const [loading, setLoading] = useState(false);
@@ -28,13 +28,14 @@ export function useInterviewSession(
 
   const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
 
-  // 2. Skill Matching Stream (Triggered automatically when Resume or Role changes)
+  // 1. Skill Matching Stream
   useEffect(() => {
-    // FIX: Now 'serverStatus' is actually the string "ready", so this works
+    // FIX 2: Now 'serverStatus' is correct, so this will actually run!
     if (serverStatus === "ready" && resumeText && targetRole) {
       setIsAnalyzingProfile(true);
       setSkillAnalysis(null);
       setSkillStep(1);
+      // Reset logs
       setTraceLogs({ 1: "Initializing connection...\n", 2: "", 3: "" });
 
       const fetchSkillStream = async () => {
@@ -76,7 +77,7 @@ export function useInterviewSession(
                   }
                   if (msg.type === "result") {
                     setSkillStep(100);
-                    setSkillAnalysis(msg.data); // This populates the Sidebar
+                    setSkillAnalysis(msg.data);
                     setTimeout(() => setIsAnalyzingProfile(false), 2000);
                   }
                 } catch (e) {
@@ -94,7 +95,7 @@ export function useInterviewSession(
     }
   }, [resumeText, targetRole, serverStatus, apiUrl, apiSecret]);
 
-  // 3. Upload Handler
+  // 2. Upload Handler
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -109,36 +110,29 @@ export function useInterviewSession(
     formData.append("file", file);
 
     try {
-      // Ensure this endpoint matches your backend exactly
       const res = await axios.post(
         `${apiUrl}/api/skills/upload_resume`,
         formData,
         {
-          headers: {
-            "X-Poly-Secret": apiSecret,
-          },
+          headers: { "X-Poly-Secret": apiSecret },
         }
       );
 
-      // Success Logic
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
     } catch (err) {
       if (err.response && err.response.status === 400) {
-        const aiMessage = err.response.data.detail;
-        alert(`⚠️ Upload Rejected:\n\n${aiMessage}`);
+        alert(`⚠️ Upload Rejected:\n\n${err.response.data.detail}`);
         e.target.value = "";
-      } else if (err.response && err.response.status === 413) {
-        alert("❌ File is too large (Max 5MB).");
       } else {
-        alert("❌ Server Error: Could not verify resume. Please try again.");
+        alert("❌ Server Error: Could not verify resume.");
       }
     } finally {
       setUploading(false);
     }
   };
 
-  // 4. Answer Analysis Handler
+  // 3. Answer Analysis Handler
   const handleAnalyzeStream = async (question, answer) => {
     if (!resumeText) return;
     setLoading(true);
@@ -182,7 +176,7 @@ export function useInterviewSession(
               else if (data.type === "result") {
                 setResult(data.data);
                 setLoading(false);
-              } else if (data.type === "error") setLoading(false);
+              }
             } catch (e) {}
           }
         }
