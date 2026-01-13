@@ -1,115 +1,145 @@
 import React, { useState, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import "./App.css";
+
+// Assets
 import polyTitle from "./poly2pro.png";
 import logo from "./logo.png";
 
-// Import Components (From previous step)
+// Components
 import Sidebar from "./components/Sidebar";
 import LandingScreen from "./components/LandingScreen";
 import MainInterface from "./components/MainInterface";
 
-// Import Logic Hooks
+// Hooks
 import { useServerHealth } from "./hooks/useServerHealth";
 import { useInterviewData } from "./hooks/useInterviewData";
 import { useInterviewSession } from "./hooks/useInterviewSession";
 
-// Configuration
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 export default function App() {
-  // 1. Hook: Manage Server Connection
+  // --- 1. HOOKS & STATE ---
   const { serverStatus, elapsedTime, setRetryTrigger } =
     useServerHealth(API_URL);
 
-  // 2. Hook: Fetch Roles & Questions
-  const { questionBank, availableRoles, defaultQuestion, defaultRole } =
-    useInterviewData(API_URL, serverStatus);
+  const { questionBank, availableRoles, defaultRole } = useInterviewData(
+    API_URL,
+    serverStatus
+  );
 
-  // 3. Local UI State (User Selections)
   const [targetRole, setTargetRole] = useState("Software Engineer");
   const [question, setQuestion] = useState("");
   const [isCustomQuestion, setIsCustomQuestion] = useState(false);
   const [answer, setAnswer] = useState("");
 
-  // Sync Defaults when API loads
+  // NEW: State for Mobile Menu
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Sync Defaults
   useEffect(() => {
     if (defaultRole) setTargetRole(defaultRole);
-    if (defaultQuestion) setQuestion(defaultQuestion);
-  }, [defaultRole, defaultQuestion]);
+  }, [defaultRole]);
 
-  // 4. Hook: Manage Interview Session (Uploads, Analysis, Streams)
-  const session = useInterviewSession(API_URL, serverStatus, targetRole);
+  // Session Logic
+  const session = useInterviewSession(
+    API_URL,
+    questionBank,
+    targetRole,
+    setQuestion,
+    setAnswer,
+    serverStatus
+  );
 
-  // Computed Logic for Button Disable
-  const isValidateDisabled =
-    !answer.trim() || !session.skillAnalysis || !question.trim();
+  // Helper to ensure isValidateDisabled is boolean
+  const isValidateDisabled = !!(
+    session.loading ||
+    !session.resumeName ||
+    !answer.trim()
+  );
 
   return (
     <div className="dashboard-container">
-      {/* LEFT SIDEBAR */}
-      <Sidebar
-        logo={logo}
-        polyTitle={polyTitle}
-        serverStatus={serverStatus}
-        setRetryTrigger={setRetryTrigger}
-        elapsedTime={elapsedTime}
-        targetRole={targetRole}
-        setTargetRole={setTargetRole}
-        availableRoles={availableRoles}
-        resumeName={session.resumeName}
-        isAnalyzingProfile={session.isAnalyzingProfile}
-        skillAnalysis={session.skillAnalysis}
-        skillStep={session.skillStep}
-        traceLogs={session.traceLogs}
+      {/* --- MOBILE: OVERLAY BACKDROP --- */}
+      <div
+        className={`sidebar-overlay ${mobileMenuOpen ? "show" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
       />
 
-      {/* MAIN CONTENT */}
+      {/* --- MOBILE: HAMBURGER BUTTON --- */}
+      <button
+        className="btn btn-light shadow-sm mobile-nav-toggle"
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+      >
+        <i className={`bi ${mobileMenuOpen ? "bi-x-lg" : "bi-list"} fs-4`}></i>
+      </button>
+
+      {/* --- SIDEBAR --- */}
+      <div className={`sidebar-wrapper ${mobileMenuOpen ? "show" : ""}`}>
+        <Sidebar
+          logo={logo}
+          polyTitle={polyTitle}
+          serverStatus={serverStatus}
+          setRetryTrigger={setRetryTrigger}
+          elapsedTime={elapsedTime}
+          targetRole={targetRole}
+          setTargetRole={(role) => {
+            setTargetRole(role);
+            setMobileMenuOpen(false); // Close menu on mobile selection
+          }}
+          availableRoles={availableRoles}
+          resumeName={session.resumeName}
+          isAnalyzingProfile={session.loading}
+          skillAnalysis={session.skillAnalysis}
+          skillStep={session.currentStep}
+          // New Prop to handle closing
+          onMobileClose={() => setMobileMenuOpen(false)}
+        />
+      </div>
+
+      {/* --- MAIN CONTENT --- */}
       <div className="main-content">
-        <div className="container" style={{ maxWidth: "900px" }}>
-          {/* CONDITION: Show Landing Screen if no resume */}
-          {!session.resumeName ? (
-            <LandingScreen
-              logo={logo}
-              targetRole={targetRole}
-              serverStatus={serverStatus}
-              uploading={session.uploading}
-              handleFileUpload={session.handleFileUpload}
-            />
-          ) : (
-            /* CONDITION: Show Main Interface if resume exists */
-            <MainInterface
-              logo={logo}
-              targetRole={targetRole}
-              apiUrl={API_URL}
-              setResumeName={session.setResumeName}
-              setResumeText={session.setResumeText}
-              question={question}
-              setQuestion={setQuestion}
-              isCustomQuestion={isCustomQuestion}
-              setIsCustomQuestion={setIsCustomQuestion}
-              questionBank={questionBank}
-              answer={answer}
-              setAnswer={setAnswer}
-              // Wrapper to pass current question/answer to the hook
-              handleAnalyzeStream={(manualAnswer) =>
-                session.handleAnalyzeStream(
-                  question,
-                  typeof manualAnswer === "string" ? manualAnswer : answer
-                )
-              }
-              isValidateDisabled={isValidateDisabled}
-              loading={session.loading}
-              skillAnalysis={session.skillAnalysis}
-              result={session.result}
-              currentStep={session.currentStep}
-              handleResetPractice={() => {
-                session.handleResetPractice();
-                setAnswer("");
-                setIsCustomQuestion(false);
-              }}
-            />
-          )}
-        </div>
+        {!session.resumeName ? (
+          <LandingScreen
+            logo={logo}
+            targetRole={targetRole}
+            serverStatus={serverStatus}
+            uploading={session.uploading}
+            handleFileUpload={session.handleFileUpload}
+          />
+        ) : (
+          <MainInterface
+            logo={logo}
+            targetRole={targetRole}
+            apiUrl={API_URL}
+            setResumeName={session.setResumeName}
+            setResumeText={session.setResumeText}
+            question={question}
+            setQuestion={setQuestion}
+            isCustomQuestion={isCustomQuestion}
+            setIsCustomQuestion={setIsCustomQuestion}
+            questionBank={questionBank}
+            answer={answer}
+            setAnswer={setAnswer}
+            handleAnalyzeStream={(manualAnswer) =>
+              session.handleAnalyzeStream(
+                question,
+                typeof manualAnswer === "string" ? manualAnswer : answer
+              )
+            }
+            isValidateDisabled={isValidateDisabled}
+            loading={session.loading}
+            skillAnalysis={session.skillAnalysis}
+            result={session.result}
+            currentStep={session.currentStep}
+            handleResetPractice={() => {
+              session.handleResetPractice();
+              setAnswer("");
+              setIsCustomQuestion(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );
