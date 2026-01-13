@@ -167,7 +167,7 @@ export default function Sidebar({
                                 // 1. Check for ID in various possible keys
                                 const skillId =
                                   typeof item === "object"
-                                    ? item.id || item.skill_id
+                                    ? item.code || item.id || item.skill_id
                                     : null;
                                 return (
                                   <li
@@ -208,7 +208,7 @@ export default function Sidebar({
                                 // 1. Check for ID
                                 const skillId =
                                   typeof item === "object"
-                                    ? item.id || item.skill_id
+                                    ? item.code || item.id || item.skill_id
                                     : null;
 
                                 return (
