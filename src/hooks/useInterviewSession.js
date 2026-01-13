@@ -124,6 +124,20 @@ export function useInterviewSession(
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
     } catch (err) {
+      if (err.response && err.response.status === 400) {
+        // This 'detail' comes from the backend: "Uploaded file does not appear to be a resume..."
+        const aiMessage = err.response.data.detail;
+        alert(`⚠️ Upload Rejected:\n\n${aiMessage}`);
+
+        // Optional: Clear the input so they can try again
+        e.target.value = "";
+      }
+      // 3. Handle Generic Server Errors (500)
+      else if (err.response && err.response.status === 413) {
+        alert("❌ File is too large (Max 5MB).");
+      } else {
+        alert("❌ Server Error: Could not verify resume. Please try again.");
+      }
       alert("Upload failed.");
     } finally {
       setUploading(false);
