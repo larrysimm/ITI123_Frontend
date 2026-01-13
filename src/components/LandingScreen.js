@@ -39,9 +39,18 @@ export default function LandingScreen({
   };
 
   return (
-    <div className="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center">
+    <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 py-5 text-center">
       <div className="mb-4">
-        <img src={logo} alt="Logo" style={{ width: "300px", height: "auto" }} />
+        <img
+          src={logo}
+          alt="Logo"
+          style={{
+            width: "300px",
+            height: "auto",
+            paddingTop: "calc(3rem + env(safe-area-inset-top))",
+            paddingBottom: "3rem",
+          }}
+        />
       </div>
       <p className="lead text-secondary mb-5">
         Master your {targetRole} interview with AI-driven precision.
