@@ -85,7 +85,7 @@ export function useInterviewSession(apiUrl, serverStatus, targetRole) {
 
   // 2. Upload Handler
   const handleFileUpload = async (e) => {
-    if (serverStatus !== "ready") return alert("Waiting for server...");
+    // if (serverStatus !== "ready") return alert("Waiting for server...");
 
     const file = e.target.files[0];
     if (!file) return;
