@@ -89,7 +89,8 @@ export default function App() {
           }}
           availableRoles={availableRoles}
           resumeName={session.resumeName}
-          isAnalyzingProfile={session.isAnalyzingProfile}
+          // 👇 THIS IS THE FIX: We add '|| session.loading'
+          isAnalyzingProfile={session.isAnalyzingProfile || session.loading}
           skillAnalysis={session.skillAnalysis}
           skillStep={session.skillStep}
           traceLogs={session.traceLogs}
@@ -105,7 +106,8 @@ export default function App() {
             logo={logo}
             targetRole={targetRole}
             serverStatus={serverStatus}
-            uploading={session.uploading}
+            // 👇 Also fixed this to ensure spinner shows
+            uploading={session.uploading || session.loading}
             handleFileUpload={session.handleFileUpload}
           />
         ) : (
