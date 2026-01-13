@@ -1,6 +1,6 @@
 import React from "react";
 // FIX: Import from the same folder (./) not parent (../)
-import SidebarTrace from "./SidebarTrace";
+import SidebarTrace from "../SidebarTrace";
 
 export default function Sidebar({
   logo,
