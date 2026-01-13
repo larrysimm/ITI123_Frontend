@@ -139,8 +139,8 @@ export default function LandingScreen({
           >
             <i className="bi bi-shield-lock-fill text-success fs-5"></i>
             <span>
-              <strong>Privacy First:</strong> Your resume is processed in memory
-              and{" "}
+              <strong>Privacy First:</strong> Your resume is PII-redacted,
+              processed in memory and{" "}
               <span className="text-decoration-underline">never stored</span>.
             </span>
           </small>
