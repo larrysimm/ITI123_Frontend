@@ -89,9 +89,10 @@ export default function App() {
           }}
           availableRoles={availableRoles}
           resumeName={session.resumeName}
-          isAnalyzingProfile={session.loading}
+          isAnalyzingProfile={session.isAnalyzingProfile}
           skillAnalysis={session.skillAnalysis}
-          skillStep={session.currentStep}
+          skillStep={session.skillStep}
+          traceLogs={session.traceLogs}
           // New Prop to handle closing
           onMobileClose={() => setMobileMenuOpen(false)}
         />
