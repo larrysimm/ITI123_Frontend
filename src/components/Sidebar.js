@@ -1,5 +1,5 @@
 import React from "react";
-// FIX 1: Import from the same folder (./) is the standard for components
+// FIX: Import from the same folder
 import SidebarTrace from "../SidebarTrace";
 
 export default function Sidebar({
@@ -104,22 +104,20 @@ export default function Sidebar({
 
             <div className="card bg-white border shadow-sm">
               <div className="card-body p-3">
-                {/* FIX 2: SidebarTrace is always visible (it handles its own 'Complete' state) 
-                    This ensures you see 'Analysis Complete' even after loading stops. */}
-                {SidebarTrace ? (
+                {/* A. TRACE LOGS (Thinking Process) */}
+                {/* Only show if we have logs or are analyzing */}
+                {(isAnalyzingProfile ||
+                  (traceLogs && Object.keys(traceLogs).length > 0)) &&
+                SidebarTrace ? (
                   <SidebarTrace
                     currentStep={skillStep}
                     traceLogs={traceLogs || {}}
                   />
-                ) : (
-                  <div className="alert alert-danger p-1 small">
-                    Trace Component Missing
-                  </div>
-                )}
+                ) : null}
 
-                {/* RESULTS DISPLAY */}
-                {/* Only show results if NOT analyzing OR if we have data ready */}
-                {(!isAnalyzingProfile || skillAnalysis) &&
+                {/* B. RESULTS DISPLAY */}
+                {/* Show results if NOT analyzing AND we have data */}
+                {!isAnalyzingProfile &&
                   skillAnalysis &&
                   (() => {
                     // Extract Lists safely
@@ -163,18 +161,35 @@ export default function Sidebar({
                               Verified Matches
                             </h6>
                             <ul className="list-unstyled mb-0 ps-1">
-                              {matchedList.map((item, i) => (
-                                <li
-                                  key={i}
-                                  className="text-dark small mb-2 border-bottom pb-1"
-                                >
-                                  <strong>
-                                    {typeof item === "string"
-                                      ? item
-                                      : item.skill}
-                                  </strong>
-                                </li>
-                              ))}
+                              {matchedList.map((item, i) => {
+                                const skillName =
+                                  typeof item === "string" ? item : item.skill;
+                                // 1. Check for ID in various possible keys
+                                const skillId =
+                                  typeof item === "object"
+                                    ? item.id || item.skill_id
+                                    : null;
+                                return (
+                                  <li
+                                    key={i}
+                                    className="text-dark small mb-2 border-bottom pb-1"
+                                  >
+                                    <strong>{skillName}</strong>
+                                    {/* 2. Render ID if it exists */}
+                                    {skillId && (
+                                      <span
+                                        className="text-muted ms-2"
+                                        style={{
+                                          fontSize: "0.7rem",
+                                          fontFamily: "monospace",
+                                        }}
+                                      >
+                                        #{skillId}
+                                      </span>
+                                    )}
+                                  </li>
+                                );
+                              })}
                             </ul>
                           </div>
                         )}
@@ -187,26 +202,48 @@ export default function Sidebar({
                               Critical Gaps
                             </h6>
                             <ul className="list-unstyled mb-0 ps-1">
-                              {missingList.map((item, i) => (
-                                <li
-                                  key={i}
-                                  className="text-dark small mb-2 border-bottom pb-1"
-                                >
-                                  <strong>
-                                    {typeof item === "string"
-                                      ? item
-                                      : item.skill}
-                                  </strong>
-                                  {item.gap && (
-                                    <div
-                                      className="text-danger mt-1"
-                                      style={{ fontSize: "0.75rem" }}
-                                    >
-                                      {item.gap}
+                              {missingList.map((item, i) => {
+                                const skillName =
+                                  typeof item === "string" ? item : item.skill;
+                                // 1. Check for ID
+                                const skillId =
+                                  typeof item === "object"
+                                    ? item.id || item.skill_id
+                                    : null;
+
+                                return (
+                                  <li
+                                    key={i}
+                                    className="text-dark small mb-2 border-bottom pb-1"
+                                  >
+                                    <div className="d-flex justify-content-between align-items-center">
+                                      <strong>{skillName}</strong>
+                                      {/* 2. Render ID if it exists */}
+                                      {skillId && (
+                                        <span
+                                          className="text-muted ms-1"
+                                          style={{
+                                            fontSize: "0.7rem",
+                                            fontFamily: "monospace",
+                                          }}
+                                        >
+                                          #{skillId}
+                                        </span>
+                                      )}
                                     </div>
-                                  )}
-                                </li>
-                              ))}
+
+                                    {/* 3. Render Gap Description */}
+                                    {item.gap && (
+                                      <div
+                                        className="text-danger mt-1 fst-italic"
+                                        style={{ fontSize: "0.75rem" }}
+                                      >
+                                        {item.gap}
+                                      </div>
+                                    )}
+                                  </li>
+                                );
+                              })}
                             </ul>
                           </div>
                         )}
