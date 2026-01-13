@@ -1,5 +1,5 @@
 import React from "react";
-// FIX: Import from the same folder (./) not parent (../)
+// FIX 1: Import from the same folder (./) is the standard for components
 import SidebarTrace from "../SidebarTrace";
 
 export default function Sidebar({
@@ -104,32 +104,22 @@ export default function Sidebar({
 
             <div className="card bg-white border shadow-sm">
               <div className="card-body p-3">
-                {/* REMOVED THE SPINNER BLOCK HERE 
-                   (Per your request: "I don't want the AI is analysing spinning")
-                */}
-
-                {/* SHOW TRACE LOGS (Thinking Process) */}
-                {isAnalyzingProfile && (
-                  <div className="mb-3 border-bottom pb-3">
-                    <label className="small text-muted fw-bold mb-1">
-                      AI Thinking Process:
-                    </label>
-                    {/* Check if SidebarTrace exists before rendering to avoid crash */}
-                    {SidebarTrace ? (
-                      <SidebarTrace
-                        currentStep={skillStep}
-                        traceLogs={traceLogs || {}}
-                      />
-                    ) : (
-                      <div className="small text-danger">
-                        Error: SidebarTrace.js missing
-                      </div>
-                    )}
+                {/* FIX 2: SidebarTrace is always visible (it handles its own 'Complete' state) 
+                    This ensures you see 'Analysis Complete' even after loading stops. */}
+                {SidebarTrace ? (
+                  <SidebarTrace
+                    currentStep={skillStep}
+                    traceLogs={traceLogs || {}}
+                  />
+                ) : (
+                  <div className="alert alert-danger p-1 small">
+                    Trace Component Missing
                   </div>
                 )}
 
                 {/* RESULTS DISPLAY */}
-                {!isAnalyzingProfile &&
+                {/* Only show results if NOT analyzing OR if we have data ready */}
+                {(!isAnalyzingProfile || skillAnalysis) &&
                   skillAnalysis &&
                   (() => {
                     // Extract Lists safely
@@ -145,7 +135,7 @@ export default function Sidebar({
 
                     if (matchedList.length === 0 && missingList.length === 0) {
                       return (
-                        <div className="text-center py-3">
+                        <div className="text-center py-3 border-top mt-3">
                           <i className="bi bi-exclamation-circle text-muted fs-4"></i>
                           <p className="small text-muted mt-2">
                             No specific skill gaps found.
@@ -155,7 +145,7 @@ export default function Sidebar({
                     }
 
                     return (
-                      <>
+                      <div className="mt-3 pt-3 border-top animate__animated animate__fadeIn">
                         <div className="mb-3 pb-2 border-bottom">
                           <small
                             className="text-secondary fst-italic"
@@ -220,13 +210,13 @@ export default function Sidebar({
                             </ul>
                           </div>
                         )}
-                      </>
+                      </div>
                     );
                   })()}
 
                 {/* Fallback */}
                 {!isAnalyzingProfile && !skillAnalysis && (
-                  <div className="text-center py-3 text-muted small">
+                  <div className="text-center py-3 text-muted small border-top mt-3">
                     No analysis data available.
                   </div>
                 )}

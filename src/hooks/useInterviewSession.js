@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// FIX 1: ACCEPT ALL ARGUMENTS FROM APP.JS IN THE CORRECT ORDER
 export function useInterviewSession(
   apiUrl,
   questionBank,
@@ -19,7 +18,7 @@ export function useInterviewSession(
   const [skillAnalysis, setSkillAnalysis] = useState(null);
   const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
   const [skillStep, setSkillStep] = useState(0);
-  const [traceLogs, setTraceLogs] = useState({}); // Keep as object for step mapping
+  const [traceLogs, setTraceLogs] = useState({});
 
   // --- Answer Analysis State ---
   const [loading, setLoading] = useState(false);
@@ -30,13 +29,11 @@ export function useInterviewSession(
 
   // 1. Skill Matching Stream
   useEffect(() => {
-    // FIX 2: Now 'serverStatus' is correct, so this will actually run!
     if (serverStatus === "ready" && resumeText && targetRole) {
       setIsAnalyzingProfile(true);
       setSkillAnalysis(null);
       setSkillStep(1);
-      // Reset logs
-      setTraceLogs({ 1: "Initializing connection...\n", 2: "", 3: "" });
+      setTraceLogs({ 1: "Initializing connection...\n" });
 
       const fetchSkillStream = async () => {
         try {
@@ -68,6 +65,8 @@ export function useInterviewSession(
                 try {
                   const msg = JSON.parse(line);
                   if (msg.step) setSkillStep(msg.step);
+
+                  // Update Logs
                   if (msg.message) {
                     setTraceLogs((prev) => ({
                       ...prev,
@@ -75,13 +74,18 @@ export function useInterviewSession(
                         (prev[msg.step] || "") + "➜ " + msg.message + "\n",
                     }));
                   }
+
+                  // FIX 3: Capture Result and Stop Loading
                   if (msg.type === "result") {
+                    console.log("✅ Analysis Data Received:", msg.data); // Debug log
                     setSkillStep(100);
                     setSkillAnalysis(msg.data);
-                    setTimeout(() => setIsAnalyzingProfile(false), 2000);
+
+                    // Force analysis to stop so results show
+                    setIsAnalyzingProfile(false);
                   }
                 } catch (e) {
-                  console.error(e);
+                  console.error("Parse Error:", e);
                 }
               }
             }
@@ -117,16 +121,10 @@ export function useInterviewSession(
           headers: { "X-Poly-Secret": apiSecret },
         }
       );
-
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
     } catch (err) {
-      if (err.response && err.response.status === 400) {
-        alert(`⚠️ Upload Rejected:\n\n${err.response.data.detail}`);
-        e.target.value = "";
-      } else {
-        alert("❌ Server Error: Could not verify resume.");
-      }
+      alert("Upload failed.");
     } finally {
       setUploading(false);
     }
