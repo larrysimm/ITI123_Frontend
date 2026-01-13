@@ -77,7 +77,6 @@ export function useInterviewSession(
 
                   // FIX 3: Capture Result and Stop Loading
                   if (msg.type === "result") {
-                    console.log("✅ Analysis Data Received:", msg.data); // Debug log
                     setSkillStep(100);
                     setSkillAnalysis(msg.data);
 
