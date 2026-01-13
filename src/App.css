@@ -1,63 +1,142 @@
-/* GLOBAL SETTINGS */
+/* =========================================
+   1. GLOBAL RESET & TYPOGRAPHY
+   ========================================= */
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: #f8f9fa;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Prevents the whole browser window from scrolling */
+  /* We remove overflow:hidden here to let mobile browsers behave naturally */
 }
 
-/* SIDEBAR SETUP */
+/* =========================================
+   2. DASHBOARD LAYOUT ENGINE
+   ========================================= */
 .dashboard-container {
   display: flex;
-  height: 100vh; /* Takes up exactly the full screen height */
+  height: 100vh; /* Full viewport height */
   width: 100vw;
-  overflow: hidden;
+  overflow: hidden; /* prevents double scrollbars on desktop */
+  position: relative;
 }
 
-.sidebar {
-  width: 280px;
-  min-width: 280px;
-  background-color: #ffffff;
-  border-right: 1px solid #dee2e6;
-  display: flex;
-  flex-direction: column;
+/* =========================================
+   3. SIDEBAR (Mobile First Logic)
+   ========================================= */
+.sidebar-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
   height: 100%;
-  overflow-y: auto; /* Scrollbar if sidebar content is too long */
-  z-index: 10;
+  width: 280px;
+  background-color: #ffffff;
+  z-index: 1050; /* Above everything */
+  transform: translateX(-100%); /* Hidden by default on mobile */
+  transition: transform 0.3s ease-in-out;
+  border-right: 1px solid #dee2e6;
 }
 
-/* MAIN CONTENT */
+/* When the menu is open */
+.sidebar-wrapper.show {
+  transform: translateX(0);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+/* The dark background overlay on mobile */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040; /* Just below sidebar */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+
+.sidebar-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Toggle Button (Hamburger) */
+.mobile-nav-toggle {
+  display: block; /* Visible on mobile */
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 1060;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================
+   4. MAIN CONTENT AREA
+   ========================================= */
 .main-content {
-  flex: 1;              /* Fill remaining width */
-  height: 100%;         /* Fill remaining height */
-  overflow-y: auto;     /* <--- KEY: Adds scrollbar to this panel only */
-  padding: 3rem;        /* Top/Side padding */
-  padding-bottom: 10rem; /* <--- KEY: Extra space at bottom so you can see the last card */
+  flex: 1;
+  height: 100%;
+  width: 100%;
   background-color: #f8f9fa;
+
+  /* SCROLLING HANDLING */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+
+  /* SPACING */
+  padding: 1.5rem; /* Compact padding for mobile */
+  padding-bottom: 8rem; /* Space at bottom for scrolling past content */
+  padding-top: 5rem; /* Space at top so content isn't behind the hamburger button */
 }
 
-/* CUSTOM CARDS (To make Bootstrap look modern) */
+/* =========================================
+   5. DESKTOP OVERRIDES (Screens > 768px)
+   ========================================= */
+@media (min-width: 768px) {
+  /* Change layout to side-by-side */
+  .dashboard-container {
+    flex-direction: row;
+  }
+
+  /* Sidebar becomes static and always visible */
+  .sidebar-wrapper {
+    position: relative;
+    transform: none !important;
+    width: 280px;
+    min-width: 280px;
+    box-shadow: none;
+    display: block;
+  }
+
+  /* Hide mobile-only elements */
+  .sidebar-overlay {
+    display: none !important;
+  }
+  .mobile-nav-toggle {
+    display: none !important;
+  }
+
+  /* Adjust Main Content */
+  .main-content {
+    padding: 3rem; /* Larger padding */
+    padding-top: 3rem; /* Reset top padding */
+    padding-bottom: 5rem;
+  }
+}
+
+/* =========================================
+   6. UTILITIES
+   ========================================= */
 .card-modern {
   border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s;
 }
-
-.upload-box {
-  border: 2px dashed #dee2e6;
-  border-radius: 12px;
-  cursor: pointer;
-  background-color: #f8f9fa;
-  transition: all 0.3s;
-}
-.upload-box:hover {
-  border-color: #0d6efd;
-  background-color: #f1f7ff;
-}
-
-/* AI TEXT FORMATTING */
-.markdown-body ul { padding-left: 20px; }
-.markdown-body p { margin-bottom: 12px; line-height: 1.6; }
-.markdown-body h3 { font-size: 1.1rem; font-weight: 700; margin-top: 20px; }
