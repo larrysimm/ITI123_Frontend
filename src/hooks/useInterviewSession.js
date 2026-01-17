@@ -120,6 +120,7 @@ export function useInterviewSession(
           headers: { "X-Poly-Secret": apiSecret },
         }
       );
+      setMobieleMenuOpen(true);
       setResumeText(res.data.extracted_text);
       setResumeName(res.data.filename);
     } catch (err) {
