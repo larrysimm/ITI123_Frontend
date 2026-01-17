@@ -282,9 +282,11 @@ export default function MainInterface({
                   className="form-control border-0 p-4"
                   rows="8"
                   // 2. Logic: Disable ONLY if recording or analyzing
-                  disabled={loading || isRecording}
+                  disabled={!question || loading || isRecording}
                   placeholder={
-                    isRecording
+                    !question
+                      ? "Please select or type a question above to start..."
+                      : isRecording
                       ? "Listening..."
                       : "Start speaking or type your answer here..."
                   }
@@ -296,7 +298,8 @@ export default function MainInterface({
                     resize: "none",
                     borderRadius: "10px 10px 0 0",
                     color: "#333",
-                    backgroundColor: isRecording ? "#f0f2f5" : "#fff",
+                    backgroundColor:
+                      isRecording || !question ? "#f0f2f5" : "#fff",
                   }}
                 ></textarea>
 
