@@ -309,6 +309,9 @@ export default function MainInterface({
                     bottom: "20px",
                     right: "20px",
                     zIndex: 10,
+                    opacity: !question ? 0.5 : 1,
+                    pointerEvents: !question ? "none" : "auto",
+                    cursor: !question ? "not-allowed" : "pointer",
                   }}
                 >
                   <VoiceRecorder
