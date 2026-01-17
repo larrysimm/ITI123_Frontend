@@ -168,34 +168,46 @@ export default function Sidebar({
                               {matchedList.map((item, i) => {
                                 const skillName =
                                   typeof item === "string" ? item : item.skill;
-                                // 1. Check for ID in various possible keys
                                 const skillId =
                                   typeof item === "object"
                                     ? item.code || item.id || item.skill_id
                                     : null;
+
                                 return (
                                   <li
                                     key={i}
-                                    className="text-dark small mb-2 border-bottom pb-1"
+                                    className="text-dark small mb-2 border-bottom pb-2"
                                   >
-                                    <strong>{skillName}</strong>
-                                    {/* 2. Render ID if it exists */}
-                                    {skillId && (
-                                      <span
-                                        className="ms-2 px-2 py-0 rounded bg-light text-secondary border"
-                                        style={{
-                                          fontSize: "0.75rem",
-                                          fontFamily: "monospace", // Makes it look like code
-                                          fontWeight: "500",
-                                        }}
-                                      >
-                                        #{skillId}
-                                      </span>
-                                    )}
+                                    {/* Name & Code Block */}
+                                    <div className="mb-1">
+                                      <div className="fw-bold">{skillName}</div>
+
+                                      {/* Code Badge on New Line */}
+                                      {skillId && (
+                                        <div className="mt-1">
+                                          <span
+                                            className="px-2 py-0 rounded bg-light text-secondary border"
+                                            style={{
+                                              fontSize: "0.65rem",
+                                              fontFamily: "monospace",
+                                              fontWeight: "500",
+                                              display: "inline-block",
+                                            }}
+                                          >
+                                            #{skillId}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Match Reason */}
                                     {item.reason && (
                                       <div
-                                        className="text-muted mt-1 fst-italic"
-                                        style={{ fontSize: "0.75rem" }}
+                                        className="text-muted mt-1 fst-italic bg-success-subtle p-2 rounded"
+                                        style={{
+                                          fontSize: "0.75rem",
+                                          lineHeight: "1.3",
+                                        }}
                                       >
                                         {item.reason}
                                       </div>
@@ -218,38 +230,46 @@ export default function Sidebar({
                               {missingList.map((item, i) => {
                                 const skillName =
                                   typeof item === "string" ? item : item.skill;
-                                // 1. Check for ID
                                 const skillId =
                                   typeof item === "object"
                                     ? item.code || item.id || item.skill_id
                                     : null;
+
                                 return (
                                   <li
                                     key={i}
-                                    className="text-dark small mb-2 border-bottom pb-1"
+                                    className="text-dark small mb-2 border-bottom pb-2"
                                   >
-                                    <div className="d-flex justify-content-between align-items-center">
-                                      <strong>{skillName}</strong>
-                                      {/* 2. Render ID if it exists */}
+                                    {/* Name & Code Block */}
+                                    <div className="mb-1">
+                                      <div className="fw-bold">{skillName}</div>
+
+                                      {/* Code Badge on New Line */}
                                       {skillId && (
-                                        <span
-                                          className="ms-2 px-2 py-0 rounded bg-light text-secondary border"
-                                          style={{
-                                            fontSize: "0.75rem",
-                                            fontFamily: "monospace", // Makes it look like code
-                                            fontWeight: "500",
-                                          }}
-                                        >
-                                          #{skillId}
-                                        </span>
+                                        <div className="mt-1">
+                                          <span
+                                            className="px-2 py-0 rounded bg-light text-secondary border"
+                                            style={{
+                                              fontSize: "0.65rem",
+                                              fontFamily: "monospace",
+                                              fontWeight: "500",
+                                              display: "inline-block",
+                                            }}
+                                          >
+                                            #{skillId}
+                                          </span>
+                                        </div>
                                       )}
                                     </div>
 
-                                    {/* 3. Render Gap Description */}
+                                    {/* Gap Description */}
                                     {item.gap && (
                                       <div
-                                        className="text-danger mt-1 fst-italic"
-                                        style={{ fontSize: "0.75rem" }}
+                                        className="text-danger mt-1 fst-italic bg-danger-subtle p-2 rounded"
+                                        style={{
+                                          fontSize: "0.75rem",
+                                          lineHeight: "1.3",
+                                        }}
                                       >
                                         {item.gap}
                                       </div>
