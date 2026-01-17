@@ -108,9 +108,15 @@ export default function MainInterface({
           alt="Logo"
           style={{ height: "60px", marginBottom: "15px" }}
         />
-        <h2 className="fw-bold text-dark mb-1">Mock Interview Session</h2>
+        <h2 className="fw-bold text-dark mb-1">
+          Cognitive-Intelligent STAR Answer Builder
+        </h2>
         <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
           Target Role: {targetRole}
+        </span>
+        <span className="d-block text-muted small mt-2">
+          Build hire-ready STAR responses through structured reasoning and
+          feedback
         </span>
         <div className="mt-3">
           <button
