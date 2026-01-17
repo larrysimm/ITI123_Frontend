@@ -182,10 +182,11 @@ export default function Sidebar({
                                     {/* 2. Render ID if it exists */}
                                     {skillId && (
                                       <span
-                                        className="text-muted ms-2"
+                                        className="ms-2 px-2 py-0 rounded bg-light text-secondary border"
                                         style={{
-                                          fontSize: "0.7rem",
-                                          fontFamily: "monospace",
+                                          fontSize: "0.75rem",
+                                          fontFamily: "monospace", // Makes it look like code
+                                          fontWeight: "500",
                                         }}
                                       >
                                         #{skillId}
@@ -222,7 +223,6 @@ export default function Sidebar({
                                   typeof item === "object"
                                     ? item.code || item.id || item.skill_id
                                     : null;
-
                                 return (
                                   <li
                                     key={i}
@@ -233,10 +233,11 @@ export default function Sidebar({
                                       {/* 2. Render ID if it exists */}
                                       {skillId && (
                                         <span
-                                          className="text-muted ms-1"
+                                          className="ms-2 px-2 py-0 rounded bg-light text-secondary border"
                                           style={{
-                                            fontSize: "0.7rem",
-                                            fontFamily: "monospace",
+                                            fontSize: "0.75rem",
+                                            fontFamily: "monospace", // Makes it look like code
+                                            fontWeight: "500",
                                           }}
                                         >
                                           #{skillId}
