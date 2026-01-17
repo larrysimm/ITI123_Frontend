@@ -194,7 +194,7 @@ export default function Sidebar({
                                               display: "inline-block",
                                             }}
                                           >
-                                            #{skillId}
+                                            {skillId}
                                           </span>
                                         </div>
                                       )}
@@ -256,7 +256,7 @@ export default function Sidebar({
                                               display: "inline-block",
                                             }}
                                           >
-                                            #{skillId}
+                                            {skillId}
                                           </span>
                                         </div>
                                       )}
