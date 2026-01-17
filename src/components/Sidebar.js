@@ -191,12 +191,12 @@ export default function Sidebar({
                                         #{skillId}
                                       </span>
                                     )}
-                                    {item.gap && (
+                                    {item.reason && (
                                       <div
-                                        className="text-danger mt-1 fst-italic"
+                                        className="text-muted mt-1 fst-italic"
                                         style={{ fontSize: "0.75rem" }}
                                       >
-                                        {item.gap}
+                                        {item.reason}
                                       </div>
                                     )}
                                   </li>
