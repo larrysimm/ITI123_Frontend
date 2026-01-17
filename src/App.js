@@ -108,7 +108,10 @@ export default function App() {
             serverStatus={serverStatus}
             // 👇 Also fixed this to ensure spinner shows
             uploading={session.uploading || session.loading}
-            handleFileUpload={session.handleFileUpload}
+            handleFileUpload={(e) => {
+              setMobileMenuOpen(true); // Open menu on mobile after upload
+              session.handleFileUpload(e);
+            }}
           />
         ) : (
           <MainInterface
