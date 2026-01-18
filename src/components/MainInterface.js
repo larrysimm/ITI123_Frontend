@@ -109,13 +109,13 @@ export default function MainInterface({
           style={{ height: "60px", marginBottom: "15px" }}
         />
         <h2 className="fw-bold text-dark mb-1">
-          Cognitive-Intelligent STAR Builder
+          Cognitive-Intelligent Interview Coach
         </h2>
-        <span className="d-block text-muted small mt-2">
+        <span className="d-block text-muted small mt-2 mb-2">
           Build hire-ready STAR responses through structured reasoning and
           feedback
         </span>
-        <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-4 rounded-pill">
+        <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
           Target Role: {targetRole}
         </span>
         <div className="mt-3">
