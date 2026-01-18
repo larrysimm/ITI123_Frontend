@@ -40,15 +40,15 @@ export default function LandingScreen({
 
   return (
     <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 py-5 text-center">
-      <div className="mb-2">
+      <div className="mb-4">
         <img
           src={logo}
           alt="Logo"
           style={{
             width: "300px",
             height: "auto",
-            paddingTop: "calc(3rem + env(safe-area-inset-top))",
-            paddingBottom: "3rem",
+            paddingTop: "1rem",
+            paddingBottom: "1rem",
           }}
         />
       </div>
