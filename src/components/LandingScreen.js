@@ -40,7 +40,7 @@ export default function LandingScreen({
 
   return (
     <div className="d-flex flex-column align-items-center justify-content-center min-vh-100 py-5 text-center">
-      <div className="mb-4">
+      <div className="mb-2">
         <img
           src={logo}
           alt="Logo"

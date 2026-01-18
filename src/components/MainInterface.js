@@ -109,7 +109,7 @@ export default function MainInterface({
           style={{ height: "60px", marginBottom: "15px" }}
         />
         <h2 className="fw-bold text-dark mb-1">
-          Cognitive-Intelligent STAR Answer Builder
+          Cognitive-Intelligent STAR Builder
         </h2>
         <span className="d-block text-muted small mt-2">
           Build hire-ready STAR responses through structured reasoning and
