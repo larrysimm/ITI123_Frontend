@@ -115,7 +115,7 @@ export default function MainInterface({
           Build hire-ready STAR responses through structured reasoning and
           feedback
         </span>
-        <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
+        <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-4 rounded-pill">
           Target Role: {targetRole}
         </span>
         <div className="mt-3">
