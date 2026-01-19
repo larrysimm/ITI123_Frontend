@@ -10,7 +10,6 @@ export default function LandingScreen({
   const [errorMessage, setErrorMessage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
-  // 1. Validation Logic
   const validateFile = (file) => {
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
     if (file.size > MAX_SIZE) {
@@ -23,7 +22,6 @@ export default function LandingScreen({
     return true;
   };
 
-  // 2. Click Handler
   const onFileSelect = (event) => {
     const file = event.target.files[0];
     setErrorMessage("");
@@ -36,7 +34,6 @@ export default function LandingScreen({
     }
   };
 
-  // 3. Drag & Drop Handlers
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -86,8 +83,12 @@ export default function LandingScreen({
         Master your {targetRole} interview with AI-driven precision.
       </p>
 
-      {/* INSTRUCTIONS ROW (Unchanged) */}
-      <div className="row w-100 mb-5 text-start g-3 justify-content-center">
+      {/* --- INSTRUCTIONS CARDS (Adjusted Width) --- */}
+      {/* Changed w-100 to style={{ maxWidth: '900px', width: '100%' }} */}
+      <div
+        className="row mb-5 text-start g-3 justify-content-center"
+        style={{ maxWidth: "900px", width: "100%" }}
+      >
         <div className="col-md-4">
           <div className="p-3 border rounded bg-white h-100 shadow-sm">
             <h6 className="fw-bold text-primary">
@@ -123,7 +124,7 @@ export default function LandingScreen({
         </div>
       </div>
 
-      {/* --- NEW UPLOAD ZONE UI --- */}
+      {/* --- UPLOAD ZONE --- */}
       <div className="w-100" style={{ maxWidth: "600px" }}>
         {errorMessage && (
           <div className="alert alert-danger py-2 mb-3 small shadow-sm animate__animated animate__shakeX">
@@ -139,7 +140,7 @@ export default function LandingScreen({
           }`}
           style={{
             transition: "all 0.2s ease-in-out",
-            borderStyle: "dashed", // Explicitly set dashed border
+            borderStyle: "dashed",
             cursor: serverStatus === "ready" ? "pointer" : "not-allowed",
           }}
           onDragOver={handleDragOver}
@@ -147,7 +148,6 @@ export default function LandingScreen({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {/* INVISIBLE FILE INPUT COVERING THE WHOLE BOX */}
           <input
             type="file"
             accept=".pdf"
@@ -160,9 +160,7 @@ export default function LandingScreen({
             }}
           />
 
-          {/* VISUAL CONTENT INSIDE THE BOX */}
           {uploading ? (
-            // LOADING STATE
             <div className="py-4">
               <div
                 className="spinner-border text-primary mb-3"
@@ -174,10 +172,7 @@ export default function LandingScreen({
               </p>
             </div>
           ) : (
-            // IDLE STATE
             <div className="py-2" style={{ pointerEvents: "none" }}>
-              {/* pointerEvents: none ensures clicks pass through to the input behind this div */}
-
               <div
                 className={`mb-3 ${
                   isDragging ? "animate__animated animate__bounce" : ""
@@ -189,17 +184,14 @@ export default function LandingScreen({
                   }`}
                 ></i>
               </div>
-
               <h5 className="fw-bold mb-2">
                 {isDragging
                   ? "Drop your resume here!"
                   : "Drag & Drop your resume here"}
               </h5>
-
               <p className="text-muted small mb-4">
                 Supported format: PDF (Max 5MB)
               </p>
-
               <button
                 className={`btn ${
                   isDragging ? "btn-primary" : "btn-outline-primary"
@@ -211,7 +203,6 @@ export default function LandingScreen({
           )}
         </div>
 
-        {/* Privacy Note */}
         <div className="mt-3 text-center">
           <small
             className="text-muted d-flex align-items-center justify-content-center gap-2"
