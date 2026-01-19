@@ -8,10 +8,9 @@ export default function LandingScreen({
   handleFileUpload,
 }) {
   const [errorMessage, setErrorMessage] = useState("");
-  // 1. New state for drag visual feedback
   const [isDragging, setIsDragging] = useState(false);
 
-  // 2. Helper function to check file validity (reused by both input and drop)
+  // 1. Validation Logic
   const validateFile = (file) => {
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
     if (file.size > MAX_SIZE) {
@@ -24,22 +23,20 @@ export default function LandingScreen({
     return true;
   };
 
-  // 3. Handler for standard file input click
+  // 2. Click Handler
   const onFileSelect = (event) => {
     const file = event.target.files[0];
     setErrorMessage("");
-
     if (file) {
       if (!validateFile(file)) {
-        event.target.value = ""; // Clear input on error
+        event.target.value = "";
         return;
       }
-      // Pass valid event to parent
       handleFileUpload(event);
     }
   };
 
-  // 4. Handlers for Drag & Drop
+  // 3. Drag & Drop Handlers
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -65,19 +62,12 @@ export default function LandingScreen({
     setErrorMessage("");
 
     if (file) {
-      // Ensure it is a PDF
       if (file.type !== "application/pdf") {
         setErrorMessage("⚠️ Only PDF files are supported.");
         return;
       }
-
       if (validateFile(file)) {
-        // Create a synthetic event object to match what the parent expects
-        const syntheticEvent = {
-          target: {
-            files: [file],
-          },
-        };
+        const syntheticEvent = { target: { files: [file] } };
         handleFileUpload(syntheticEvent);
       }
     }
@@ -89,21 +79,15 @@ export default function LandingScreen({
         <img
           src={logo}
           alt="Logo"
-          style={{
-            width: "300px",
-            height: "auto",
-            paddingTop: "1rem",
-            paddingBottom: "1rem",
-          }}
+          style={{ width: "300px", height: "auto", padding: "1rem 0" }}
         />
       </div>
       <p className="lead text-secondary mb-5">
         Master your {targetRole} interview with AI-driven precision.
       </p>
 
-      {/* INSTRUCTIONS CARDS */}
+      {/* INSTRUCTIONS ROW (Unchanged) */}
       <div className="row w-100 mb-5 text-start g-3 justify-content-center">
-        {/* ... (Existing instruction cards remain unchanged) ... */}
         <div className="col-md-4">
           <div className="p-3 border rounded bg-white h-100 shadow-sm">
             <h6 className="fw-bold text-primary">
@@ -139,78 +123,115 @@ export default function LandingScreen({
         </div>
       </div>
 
-      {/* UPLOAD ACTION */}
-      {/* 5. Attach Drop Handlers to the container */}
-      <div
-        className={`position-relative p-4 rounded-3 transition-all ${
-          isDragging
-            ? "bg-light border border-primary border-2 border-dashed shadow-sm"
-            : ""
-        }`}
-        style={{ transition: "all 0.2s ease-in-out" }}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
+      {/* --- NEW UPLOAD ZONE UI --- */}
+      <div className="w-100" style={{ maxWidth: "600px" }}>
         {errorMessage && (
           <div className="alert alert-danger py-2 mb-3 small shadow-sm animate__animated animate__shakeX">
             {errorMessage}
           </div>
         )}
 
-        <button
-          className={`btn btn-lg px-5 py-3 rounded-pill shadow fw-bold ${
-            errorMessage ? "btn-outline-danger" : "btn-primary"
-          } ${isDragging ? "scale-105" : ""}`}
-          disabled={serverStatus !== "ready" || uploading}
-          style={{ pointerEvents: "none" }} // Let clicks pass through to the input
+        <div
+          className={`position-relative p-5 rounded-4 transition-all text-center border-2 ${
+            isDragging
+              ? "bg-primary-subtle border-primary border-dashed shadow-lg"
+              : "bg-light border-secondary border-dashed shadow-sm"
+          }`}
+          style={{
+            transition: "all 0.2s ease-in-out",
+            borderStyle: "dashed", // Explicitly set dashed border
+            cursor: serverStatus === "ready" ? "pointer" : "not-allowed",
+          }}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
-          {uploading ? (
-            <span>
-              <span className="spinner-border spinner-border-sm me-2"></span>
-              Analyzing Profile...
-            </span>
-          ) : (
-            <span>
-              <i className="bi bi-cloud-upload me-2"></i>
-              {/* Change text based on drag state */}
-              {isDragging ? "Drop PDF Here" : "Upload Resume to Start"}
-            </span>
-          )}
-        </button>
+          {/* INVISIBLE FILE INPUT COVERING THE WHOLE BOX */}
+          <input
+            type="file"
+            accept=".pdf"
+            disabled={serverStatus !== "ready" || uploading}
+            onChange={onFileSelect}
+            className="position-absolute w-100 h-100 start-0 top-0 opacity-0"
+            style={{
+              cursor: serverStatus === "ready" ? "pointer" : "not-allowed",
+              zIndex: 10,
+            }}
+          />
 
-        <input
-          type="file"
-          accept=".pdf"
-          disabled={serverStatus !== "ready" || uploading}
-          onChange={onFileSelect}
-          className="position-absolute w-100 h-100 start-0 top-0 opacity-0"
-          style={{ cursor: "pointer" }}
-        />
+          {/* VISUAL CONTENT INSIDE THE BOX */}
+          {uploading ? (
+            // LOADING STATE
+            <div className="py-4">
+              <div
+                className="spinner-border text-primary mb-3"
+                role="status"
+              ></div>
+              <h5 className="fw-bold text-primary">Analyzing Profile...</h5>
+              <p className="text-muted small mb-0">
+                Please wait while we process your resume.
+              </p>
+            </div>
+          ) : (
+            // IDLE STATE
+            <div className="py-2" style={{ pointerEvents: "none" }}>
+              {/* pointerEvents: none ensures clicks pass through to the input behind this div */}
+
+              <div
+                className={`mb-3 ${
+                  isDragging ? "animate__animated animate__bounce" : ""
+                }`}
+              >
+                <i
+                  className={`bi bi-cloud-arrow-up-fill fs-1 ${
+                    isDragging ? "text-primary" : "text-secondary"
+                  }`}
+                ></i>
+              </div>
+
+              <h5 className="fw-bold mb-2">
+                {isDragging
+                  ? "Drop your resume here!"
+                  : "Drag & Drop your resume here"}
+              </h5>
+
+              <p className="text-muted small mb-4">
+                Supported format: PDF (Max 5MB)
+              </p>
+
+              <button
+                className={`btn ${
+                  isDragging ? "btn-primary" : "btn-outline-primary"
+                } rounded-pill px-4 fw-bold`}
+              >
+                Or Browse Files
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Privacy Note */}
-        <div className="mt-3 text-center p-2 rounded">
+        <div className="mt-3 text-center">
           <small
             className="text-muted d-flex align-items-center justify-content-center gap-2"
             style={{ fontSize: "0.85rem" }}
           >
-            <i className="bi bi-shield-lock-fill text-success fs-5"></i>
+            <i className="bi bi-shield-lock-fill text-success"></i>
             <span>
-              <strong>Privacy First:</strong> Your resume is PII-redacted,
-              processed in memory and{" "}
-              <span className="text-decoration-underline">never stored</span>.
+              <strong>Privacy First:</strong> Your resume is processed in memory
+              and never stored.
             </span>
           </small>
         </div>
-      </div>
 
-      {serverStatus !== "ready" && (
-        <div className="mt-3 text-muted small">
-          <span className="spinner-border spinner-border-sm me-2"></span>
-          System initializing...
-        </div>
-      )}
+        {serverStatus !== "ready" && (
+          <div className="mt-3 text-muted small">
+            <span className="spinner-border spinner-border-sm me-2"></span>
+            System initializing...
+          </div>
+        )}
+      </div>
     </div>
   );
 }
