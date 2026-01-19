@@ -71,22 +71,26 @@ export default function LandingScreen({
   };
 
   return (
-    <div className="d-flex flex-column align-items-center justify-content-center-start min-vh-100 py-5 text-center">
-      <div className="mb-4">
+    // 1. Changed justify-content to 'start' to align items to top
+    // 2. Reduced top padding from py-5 to pt-4
+    <div className="d-flex flex-column align-items-center justify-content-start min-vh-100 pt-4 pb-5 text-center">
+      {/* Reduced bottom margin */}
+      <div className="mb-3">
         <img
           src={logo}
           alt="Logo"
-          style={{ width: "300px", height: "auto", padding: "1rem 0" }}
+          style={{ width: "300px", height: "auto", padding: "0.5rem 0" }}
         />
       </div>
-      <p className="lead text-secondary mb-5">
+
+      {/* Reduced bottom margin */}
+      <p className="lead text-secondary mb-4">
         Master your {targetRole} interview with AI-driven precision.
       </p>
 
-      {/* --- INSTRUCTIONS CARDS (Adjusted Width) --- */}
-      {/* Changed w-100 to style={{ maxWidth: '900px', width: '100%' }} */}
+      {/* Reduced bottom margin */}
       <div
-        className="row mb-5 text-start g-3 justify-content-center"
+        className="row mb-4 text-start g-3 justify-content-center"
         style={{ maxWidth: "900px", width: "100%" }}
       >
         <div className="col-md-4">
@@ -124,7 +128,7 @@ export default function LandingScreen({
         </div>
       </div>
 
-      {/* --- UPLOAD ZONE --- */}
+      {/* UPLOAD ZONE */}
       <div className="w-100" style={{ maxWidth: "600px" }}>
         {errorMessage && (
           <div className="alert alert-danger py-2 mb-3 small shadow-sm animate__animated animate__shakeX">
