@@ -71,10 +71,7 @@ export default function LandingScreen({
   };
 
   return (
-    // 1. Changed justify-content to 'start' to align items to top
-    // 2. Reduced top padding from py-5 to pt-4
-    <div className="d-flex flex-column align-items-center justify-content-start min-vh-100 pt-4 pb-5 text-center">
-      {/* Reduced bottom margin */}
+    <div className="d-flex flex-column align-items-center justify-content-start min-vh-100 pt-4 pb-4 text-center">
       <div className="mb-3">
         <img
           src={logo}
@@ -82,13 +79,11 @@ export default function LandingScreen({
           style={{ width: "300px", height: "auto", padding: "0.5rem 0" }}
         />
       </div>
-
-      {/* Reduced bottom margin */}
       <p className="lead text-secondary mb-4">
         Master your {targetRole} interview with AI-driven precision.
       </p>
 
-      {/* Reduced bottom margin */}
+      {/* Instructions Row */}
       <div
         className="row mb-4 text-start g-3 justify-content-center"
         style={{ maxWidth: "900px", width: "100%" }}
@@ -137,7 +132,8 @@ export default function LandingScreen({
         )}
 
         <div
-          className={`position-relative p-5 rounded-4 transition-all text-center border-2 ${
+          // 1. Changed padding from p-5 to p-4 to reduce height
+          className={`position-relative p-4 rounded-4 transition-all text-center border-2 ${
             isDragging
               ? "bg-primary-subtle border-primary border-dashed shadow-lg"
               : "bg-light border-secondary border-dashed shadow-sm"
@@ -165,9 +161,9 @@ export default function LandingScreen({
           />
 
           {uploading ? (
-            <div className="py-4">
+            <div className="py-3">
               <div
-                className="spinner-border text-primary mb-3"
+                className="spinner-border text-primary mb-2"
                 role="status"
               ></div>
               <h5 className="fw-bold text-primary">Analyzing Profile...</h5>
@@ -176,30 +172,34 @@ export default function LandingScreen({
               </p>
             </div>
           ) : (
-            <div className="py-2" style={{ pointerEvents: "none" }}>
+            <div className="py-1" style={{ pointerEvents: "none" }}>
+              {/* 2. Reduced Icon Size (fs-1 -> fs-2) and margin (mb-3 -> mb-2) */}
               <div
-                className={`mb-3 ${
+                className={`mb-2 ${
                   isDragging ? "animate__animated animate__bounce" : ""
                 }`}
               >
                 <i
-                  className={`bi bi-cloud-arrow-up-fill fs-1 ${
+                  className={`bi bi-cloud-arrow-up-fill fs-2 ${
                     isDragging ? "text-primary" : "text-secondary"
                   }`}
                 ></i>
               </div>
-              <h5 className="fw-bold mb-2">
+
+              {/* 3. Compact text spacing */}
+              <h5 className="fw-bold mb-1">
                 {isDragging
                   ? "Drop your resume here!"
                   : "Drag & Drop your resume here"}
               </h5>
-              <p className="text-muted small mb-4">
+              <p className="text-muted small mb-3">
                 Supported format: PDF (Max 5MB)
               </p>
+
               <button
                 className={`btn ${
                   isDragging ? "btn-primary" : "btn-outline-primary"
-                } rounded-pill px-4 fw-bold`}
+                } rounded-pill px-4 fw-bold btn-sm`}
               >
                 Or Browse Files
               </button>
@@ -207,6 +207,7 @@ export default function LandingScreen({
           )}
         </div>
 
+        {/* Privacy Note - Now visible immediately below the box */}
         <div className="mt-3 text-center">
           <small
             className="text-muted d-flex align-items-center justify-content-center gap-2"
