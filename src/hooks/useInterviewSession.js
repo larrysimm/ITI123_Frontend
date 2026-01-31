@@ -10,13 +10,13 @@ export function useInterviewSession(
   serverStatus
 ) {
   // --- STATE ---
-  const [uploading, setUploading] = useState(false); // Phase 1: Uploading File
-  const [isVerified, setIsVerified] = useState(false); // Phase 1 Complete: Ready to Analyze
-  const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false); // Phase 2: AI working
+  const [uploading, setUploading] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
 
   const [resumeName, setResumeName] = useState("");
   const [resumeText, setResumeText] = useState("");
-  const [uploadError, setUploadError] = useState("");
+  const [uploadError, setUploadError] = useState(""); // <--- Defined here
 
   // --- Analysis Data ---
   const [skillAnalysis, setSkillAnalysis] = useState(null);
@@ -24,17 +24,16 @@ export function useInterviewSession(
   const [traceLogs, setTraceLogs] = useState({});
 
   // --- Answer Practice Data ---
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // <--- Defined here
   const [result, setResult] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
 
   const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
 
   // ==================================================
-  // STEP 1: UPLOAD & VERIFY (Stops after success)
+  // STEP 1: UPLOAD & VERIFY
   // ==================================================
   const handleFileUpload = async (e) => {
-    // Handle both standard Event and Drag-and-Drop synthetic event
     const file = e.target.files ? e.target.files[0] : null;
     if (!file) return;
 
@@ -42,7 +41,6 @@ export function useInterviewSession(
     setUploadError("");
     setResumeName(file.name);
 
-    // Reset Analysis States
     setIsVerified(false);
     setIsAnalyzingProfile(false);
     setSkillAnalysis(null);
@@ -51,7 +49,6 @@ export function useInterviewSession(
     formData.append("file", file);
 
     try {
-      // ✅ PRESERVED URL & HEADER
       const response = await axios.post(
         `${apiUrl}/api/skills/upload_resume`,
         formData,
@@ -60,8 +57,7 @@ export function useInterviewSession(
         }
       );
 
-      // ✅ SUCCESS: Store text, Mark as VERIFIED
-      setResumeText(response.data.safety_text || response.data.extracted_text); // Handle potential naming diffs
+      setResumeText(response.data.safety_text || response.data.extracted_text);
       setIsVerified(true);
     } catch (error) {
       console.error("Upload failed:", error);
@@ -79,7 +75,7 @@ export function useInterviewSession(
   };
 
   // ==================================================
-  // STEP 2: START ANALYSIS (Manual Trigger)
+  // STEP 2: START ANALYSIS
   // ==================================================
   const startProfileAnalysis = async () => {
     if (!resumeText || !targetRole) {
@@ -92,7 +88,6 @@ export function useInterviewSession(
     setTraceLogs({ 1: "Initializing analysis stream...\n" });
 
     try {
-      // ✅ PRESERVED URL & HEADER
       const response = await fetch(`${apiUrl}/api/skills/match_skills`, {
         method: "POST",
         headers: {
@@ -139,10 +134,13 @@ export function useInterviewSession(
     } catch (error) {
       console.error("Stream error:", error);
       setIsAnalyzingProfile(false);
+      setUploadError("Analysis connection failed.");
     }
   };
 
-  // Step 3 (Unchanged)
+  // ==================================================
+  // STEP 3: ANSWER PRACTICE
+  // ==================================================
   const handleAnalyzeStream = async (question, answer) => {
     if (!resumeText) return;
     setLoading(true);
@@ -204,8 +202,10 @@ export function useInterviewSession(
   return {
     // UI Flags
     uploading,
-    isVerified, // <--- Use this to show "Start Button"
-    isAnalyzingProfile, // <--- Use this to show "Analyzing Spinner"
+    isVerified,
+    isAnalyzingProfile,
+    uploadError, // ✅ FIXED: Now exported
+    loading, // ✅ FIXED: Now exported
 
     // Data
     resumeName,
