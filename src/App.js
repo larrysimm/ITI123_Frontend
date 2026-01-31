@@ -90,7 +90,7 @@ export default function App() {
           availableRoles={availableRoles}
           resumeName={session.resumeName}
           // 👇 THIS IS THE FIX: We add '|| session.loading'
-          isAnalyzingProfile={session.isAnalyzingProfile || session.loading}
+          isAnalyzingProfile={session.isAnalyzingProfile}
           skillAnalysis={session.skillAnalysis}
           skillStep={session.skillStep}
           traceLogs={session.traceLogs}
