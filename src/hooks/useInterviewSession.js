@@ -9,25 +9,21 @@ export function useInterviewSession(
   setAnswer,
   serverStatus
 ) {
-  // --- SESSION STATUS ---
-  // 'idle'      -> Waiting for file
-  // 'uploading' -> Sending to server
-  // 'verified'  -> File accepted. Waiting for user to click "Start".
-  // 'analyzing' -> AI is streaming results
-  // 'done'      -> Analysis complete
-  const [sessionStatus, setSessionStatus] = useState("idle");
-  const [uploadError, setUploadError] = useState("");
+  // --- STATE ---
+  const [uploading, setUploading] = useState(false); // Phase 1: Uploading File
+  const [isVerified, setIsVerified] = useState(false); // Phase 1 Complete: Ready to Analyze
+  const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false); // Phase 2: AI working
 
-  // --- Data States ---
   const [resumeName, setResumeName] = useState("");
   const [resumeText, setResumeText] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
-  // --- Skill Analysis State ---
+  // --- Analysis Data ---
   const [skillAnalysis, setSkillAnalysis] = useState(null);
   const [skillStep, setSkillStep] = useState(0);
   const [traceLogs, setTraceLogs] = useState({});
 
-  // --- Answer Analysis State ---
+  // --- Answer Practice Data ---
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
@@ -35,47 +31,50 @@ export function useInterviewSession(
   const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
 
   // ==================================================
-  // STEP 1: UPLOAD & VERIFY (Stops after verification)
+  // STEP 1: UPLOAD & VERIFY (Stops after success)
   // ==================================================
-  const handleFileUpload = async (acceptedFiles) => {
-    const file = acceptedFiles[0];
+  const handleFileUpload = async (e) => {
+    // Handle both standard Event and Drag-and-Drop synthetic event
+    const file = e.target.files ? e.target.files[0] : null;
     if (!file) return;
 
-    setSessionStatus("uploading");
+    setUploading(true);
     setUploadError("");
     setResumeName(file.name);
+
+    // Reset Analysis States
+    setIsVerified(false);
+    setIsAnalyzingProfile(false);
     setSkillAnalysis(null);
-    setTraceLogs({});
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      // ✅ CORRECT URL: /api/skills/upload_resume
-      // ✅ CORRECT HEADER: X-Poly-Secret
+      // ✅ PRESERVED URL & HEADER
       const response = await axios.post(
         `${apiUrl}/api/skills/upload_resume`,
         formData,
         {
-          headers: {
-            "X-Poly-Secret": apiSecret,
-          },
+          headers: { "X-Poly-Secret": apiSecret },
         }
       );
 
-      // SUCCESS: Store text, but STOP here.
-      setResumeText(response.data.safety_text);
-      setSessionStatus("verified");
+      // ✅ SUCCESS: Store text, Mark as VERIFIED
+      setResumeText(response.data.safety_text || response.data.extracted_text); // Handle potential naming diffs
+      setIsVerified(true);
     } catch (error) {
       console.error("Upload failed:", error);
-      setSessionStatus("error");
+      setIsVerified(false);
       setResumeName("");
 
       let msg = "Failed to upload resume.";
-      if (error.response && error.response.data && error.response.data.detail) {
+      if (error.response?.data?.detail) {
         msg = error.response.data.detail;
       }
       setUploadError(msg);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -84,17 +83,16 @@ export function useInterviewSession(
   // ==================================================
   const startProfileAnalysis = async () => {
     if (!resumeText || !targetRole) {
-      alert("Please ensure a resume is uploaded and a role is selected.");
+      alert("Missing resume or target role.");
       return;
     }
 
-    setSessionStatus("analyzing");
+    setIsAnalyzingProfile(true);
     setSkillStep(1);
     setTraceLogs({ 1: "Initializing analysis stream...\n" });
 
     try {
-      // ✅ CORRECT URL: /api/skills/match_skills
-      // ✅ CORRECT HEADER: X-Poly-Secret
+      // ✅ PRESERVED URL & HEADER
       const response = await fetch(`${apiUrl}/api/skills/match_skills`, {
         method: "POST",
         headers: {
@@ -122,7 +120,6 @@ export function useInterviewSession(
           if (line.trim()) {
             try {
               const data = JSON.parse(line);
-
               if (data.type === "log") {
                 setTraceLogs((prev) => ({
                   ...prev,
@@ -131,34 +128,28 @@ export function useInterviewSession(
                 setSkillStep(data.step);
               } else if (data.type === "result") {
                 setSkillAnalysis(data.data);
-                setSessionStatus("done");
+                setIsAnalyzingProfile(false);
               }
             } catch (e) {
-              console.error("JSON Parse Error", e);
+              console.error(e);
             }
           }
         }
       }
     } catch (error) {
       console.error("Stream error:", error);
-      setSessionStatus("verified");
-      setUploadError("Analysis connection failed. Please try again.");
+      setIsAnalyzingProfile(false);
     }
   };
 
-  // ==================================================
-  // STEP 3: ANSWER ANALYSIS (Unchanged)
-  // ==================================================
-  const handleAnswerSubmit = async (answer) => {
-    if (!answer.trim()) return;
+  // Step 3 (Unchanged)
+  const handleAnalyzeStream = async (question, answer) => {
+    if (!resumeText) return;
     setLoading(true);
     setResult(null);
-
-    const question = questionBank[currentStep];
+    setCurrentStep(1);
 
     try {
-      // ✅ CORRECT URL: /api/interview/analyze_stream
-      // ✅ CORRECT HEADER: X-Poly-Secret
       const response = await fetch(`${apiUrl}/api/interview/analyze_stream`, {
         method: "POST",
         headers: {
@@ -167,7 +158,7 @@ export function useInterviewSession(
         },
         body: JSON.stringify({
           target_role: targetRole,
-          question: question,
+          question,
           student_answer: answer,
           skill_data: skillAnalysis,
         }),
@@ -210,36 +201,26 @@ export function useInterviewSession(
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // --- COMPATIBILITY MAPPING ---
-  // We map the new "sessionStatus" back to the booleans your UI expects.
-  const uploading = sessionStatus === "uploading";
-  const isAnalyzingProfile = sessionStatus === "analyzing";
-  const isReadyToAnalyze = sessionStatus === "verified"; // <--- USE THIS FOR YOUR BUTTON
-
   return {
-    // Legacy Variables (So your UI doesn't break)
+    // UI Flags
     uploading,
-    isAnalyzingProfile,
-    resumeName,
-    resumeText,
-
-    // New Variables
-    sessionStatus,
-    uploadError,
-    isReadyToAnalyze,
+    isVerified, // <--- Use this to show "Start Button"
+    isAnalyzingProfile, // <--- Use this to show "Analyzing Spinner"
 
     // Data
+    resumeName,
+    setResumeName,
+    setResumeText,
     skillAnalysis,
     skillStep,
     traceLogs,
-    loading,
     result,
     currentStep,
 
     // Functions
     handleFileUpload,
     startProfileAnalysis,
-    handleAnswerSubmit,
+    handleAnalyzeStream,
     handleResetPractice,
   };
 }
