@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 export function useInterviewSession(
@@ -9,14 +9,21 @@ export function useInterviewSession(
   setAnswer,
   serverStatus
 ) {
-  // --- Upload State ---
-  const [uploading, setUploading] = useState(false);
+  // --- 1. SESSION STATUS ---
+  // 'idle'      -> Waiting for file
+  // 'uploading' -> Sending to server
+  // 'verified'  -> File accepted. Waiting for user to click "Start Analysis".
+  // 'analyzing' -> AI is streaming results
+  // 'done'      -> Analysis complete
+  const [sessionStatus, setSessionStatus] = useState("idle");
+  const [uploadError, setUploadError] = useState("");
+
+  // --- Data States ---
   const [resumeName, setResumeName] = useState("");
   const [resumeText, setResumeText] = useState("");
 
   // --- Skill Analysis State ---
   const [skillAnalysis, setSkillAnalysis] = useState(null);
-  const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
   const [skillStep, setSkillStep] = useState(0);
   const [traceLogs, setTraceLogs] = useState({});
 
@@ -27,130 +34,70 @@ export function useInterviewSession(
 
   const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
 
-  // 1. Skill Matching Stream
-  useEffect(() => {
-    if (serverStatus === "ready" && resumeText && targetRole) {
-      setIsAnalyzingProfile(true);
-      setSkillAnalysis(null);
-      setSkillStep(1);
-      setTraceLogs({ 1: "Initializing connection...\n" });
-
-      const fetchSkillStream = async () => {
-        try {
-          const response = await fetch(`${apiUrl}/api/skills/match_skills`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Poly-Secret": apiSecret,
-            },
-            body: JSON.stringify({
-              resume_text: resumeText,
-              target_role: targetRole,
-            }),
-          });
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder("utf-8");
-          let buffer = "";
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop();
-
-            for (const line of lines) {
-              if (line.trim()) {
-                try {
-                  const msg = JSON.parse(line);
-                  if (msg.step) setSkillStep(msg.step);
-
-                  // Update Logs
-                  if (msg.message) {
-                    setTraceLogs((prev) => ({
-                      ...prev,
-                      [msg.step]:
-                        (prev[msg.step] || "") + "➜ " + msg.message + "\n",
-                    }));
-                  }
-
-                  // FIX 3: Capture Result and Stop Loading
-                  if (msg.type === "result") {
-                    setSkillStep(100);
-                    setSkillAnalysis(msg.data);
-
-                    // Force analysis to stop so results show
-                    setIsAnalyzingProfile(false);
-                  }
-                } catch (e) {
-                  console.error("Parse Error:", e);
-                }
-              }
-            }
-          }
-        } catch (err) {
-          console.error("Skill Stream Error:", err);
-          setIsAnalyzingProfile(false);
-        }
-      };
-      fetchSkillStream();
-    }
-  }, [resumeText, targetRole, serverStatus, apiUrl, apiSecret]);
-
-  // 2. Upload Handler
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+  // ==================================================
+  // STEP 1: UPLOAD & VERIFY (Stops after verification)
+  // ==================================================
+  const handleFileUpload = async (acceptedFiles) => {
+    const file = acceptedFiles[0];
     if (!file) return;
 
-    if (file.type !== "application/pdf") {
-      alert("❌ Invalid File: Please upload a PDF.");
-      return;
-    }
+    setSessionStatus("uploading");
+    setUploadError("");
+    setResumeName(file.name);
+    setSkillAnalysis(null);
+    setTraceLogs({});
 
-    setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await axios.post(
+      // ✅ CORRECT URL: /api/skills/upload_resume
+      // ✅ CORRECT HEADER: X-Poly-Secret
+      const response = await axios.post(
         `${apiUrl}/api/skills/upload_resume`,
         formData,
         {
-          headers: { "X-Poly-Secret": apiSecret },
+          headers: {
+            "X-Poly-Secret": apiSecret,
+          },
         }
       );
-      setResumeText(res.data.extracted_text);
-      setResumeName(res.data.filename);
-    } catch (err) {
-      if (err.response && err.response.status === 400) {
-        // This 'detail' comes from the backend: "Uploaded file does not appear to be a resume..."
-        const aiMessage = err.response.data.detail;
-        alert(`⚠️ Upload Rejected:\n\n${aiMessage}`);
 
-        // Optional: Clear the input so they can try again
-        e.target.value = "";
+      // 2. SUCCESS: Store text, but STOP here.
+      setResumeText(response.data.safety_text);
+      setSessionStatus("verified");
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setSessionStatus("error");
+      setResumeName("");
+
+      // Extract Backend Error (e.g. "Invoice detected")
+      let msg = "Failed to upload resume.";
+      if (error.response && error.response.data && error.response.data.detail) {
+        msg = error.response.data.detail;
       }
-      // 3. Handle Generic Server Errors (500)
-      else if (err.response && err.response.status === 413) {
-        alert("❌ File is too large (Max 5MB).");
-      } else {
-        alert("❌ Server Error: Could not verify resume. Please try again.");
-      }
-    } finally {
-      setUploading(false);
+      setUploadError(msg);
     }
   };
 
-  // 3. Answer Analysis Handler
-  const handleAnalyzeStream = async (question, answer) => {
-    if (!resumeText) return;
-    setLoading(true);
-    setResult(null);
-    setCurrentStep(1);
+  // ==================================================
+  // STEP 2: START ANALYSIS (Manual Trigger)
+  // ==================================================
+  const startProfileAnalysis = async () => {
+    // Logic Check
+    if (!resumeText || !targetRole) {
+      alert("Please ensure a resume is uploaded and a role is selected.");
+      return;
+    }
+
+    setSessionStatus("analyzing");
+    setSkillStep(1);
+    setTraceLogs({ 1: "Initializing analysis stream...\n" });
 
     try {
-      const response = await fetch(`${apiUrl}/api/interview/analyze_stream`, {
+      // ✅ CORRECT URL: /api/skills/match_skills
+      // ✅ CORRECT HEADER: X-Poly-Secret
+      const response = await fetch(`${apiUrl}/api/skills/match_skills`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -159,7 +106,71 @@ export function useInterviewSession(
         body: JSON.stringify({
           resume_text: resumeText,
           target_role: targetRole,
-          question,
+        }),
+      });
+
+      // 2. Handle Stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const data = JSON.parse(line);
+
+              if (data.type === "log") {
+                setTraceLogs((prev) => ({
+                  ...prev,
+                  [data.step]: (prev[data.step] || "") + data.message + "\n",
+                }));
+                setSkillStep(data.step);
+              } else if (data.type === "result") {
+                setSkillAnalysis(data.data);
+                setSessionStatus("done");
+              }
+            } catch (e) {
+              console.error("JSON Parse Error", e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Stream error:", error);
+      setSessionStatus("verified"); // Allow retry
+      setUploadError("Analysis connection failed. Please try again.");
+    }
+  };
+
+  // ==================================================
+  // STEP 3: ANSWER ANALYSIS (Unchanged)
+  // ==================================================
+  const handleAnswerSubmit = async (answer) => {
+    if (!answer.trim()) return;
+    setLoading(true);
+    setResult(null);
+
+    const question = questionBank[currentStep];
+
+    try {
+      // ✅ CORRECT URL: /api/interview/analyze_stream
+      // ✅ CORRECT HEADER: X-Poly-Secret
+      const response = await fetch(`${apiUrl}/api/interview/analyze_stream`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Poly-Secret": apiSecret,
+        },
+        body: JSON.stringify({
+          target_role: targetRole,
+          question: question,
           student_answer: answer,
           skill_data: skillAnalysis,
         }),
@@ -192,6 +203,7 @@ export function useInterviewSession(
         }
       }
     } catch (error) {
+      console.error("Answer analysis failed:", error);
       setLoading(false);
     }
   };
@@ -203,19 +215,23 @@ export function useInterviewSession(
   };
 
   return {
-    uploading,
-    loading,
+    // New States for UI
+    sessionStatus, // 'idle', 'verified', 'analyzing'
+    uploadError,
     resumeName,
-    setResumeName,
-    setResumeText,
+
+    // Existing Data
     skillAnalysis,
-    isAnalyzingProfile,
     skillStep,
     traceLogs,
+    loading,
     result,
     currentStep,
-    handleFileUpload,
-    handleAnalyzeStream,
+
+    // Actions
+    handleFileUpload, // Drag & Drop
+    startProfileAnalysis, // "Start" Button
+    handleAnswerSubmit,
     handleResetPractice,
   };
 }
