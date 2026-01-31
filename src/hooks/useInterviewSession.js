@@ -9,10 +9,10 @@ export function useInterviewSession(
   setAnswer,
   serverStatus
 ) {
-  // --- 1. SESSION STATUS ---
+  // --- SESSION STATUS ---
   // 'idle'      -> Waiting for file
   // 'uploading' -> Sending to server
-  // 'verified'  -> File accepted. Waiting for user to click "Start Analysis".
+  // 'verified'  -> File accepted. Waiting for user to click "Start".
   // 'analyzing' -> AI is streaming results
   // 'done'      -> Analysis complete
   const [sessionStatus, setSessionStatus] = useState("idle");
@@ -63,7 +63,7 @@ export function useInterviewSession(
         }
       );
 
-      // 2. SUCCESS: Store text, but STOP here.
+      // SUCCESS: Store text, but STOP here.
       setResumeText(response.data.safety_text);
       setSessionStatus("verified");
     } catch (error) {
@@ -71,7 +71,6 @@ export function useInterviewSession(
       setSessionStatus("error");
       setResumeName("");
 
-      // Extract Backend Error (e.g. "Invoice detected")
       let msg = "Failed to upload resume.";
       if (error.response && error.response.data && error.response.data.detail) {
         msg = error.response.data.detail;
@@ -84,7 +83,6 @@ export function useInterviewSession(
   // STEP 2: START ANALYSIS (Manual Trigger)
   // ==================================================
   const startProfileAnalysis = async () => {
-    // Logic Check
     if (!resumeText || !targetRole) {
       alert("Please ensure a resume is uploaded and a role is selected.");
       return;
@@ -109,7 +107,6 @@ export function useInterviewSession(
         }),
       });
 
-      // 2. Handle Stream
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -144,7 +141,7 @@ export function useInterviewSession(
       }
     } catch (error) {
       console.error("Stream error:", error);
-      setSessionStatus("verified"); // Allow retry
+      setSessionStatus("verified");
       setUploadError("Analysis connection failed. Please try again.");
     }
   };
@@ -203,7 +200,6 @@ export function useInterviewSession(
         }
       }
     } catch (error) {
-      console.error("Answer analysis failed:", error);
       setLoading(false);
     }
   };
@@ -214,13 +210,25 @@ export function useInterviewSession(
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  return {
-    // New States for UI
-    sessionStatus, // 'idle', 'verified', 'analyzing'
-    uploadError,
-    resumeName,
+  // --- COMPATIBILITY MAPPING ---
+  // We map the new "sessionStatus" back to the booleans your UI expects.
+  const uploading = sessionStatus === "uploading";
+  const isAnalyzingProfile = sessionStatus === "analyzing";
+  const isReadyToAnalyze = sessionStatus === "verified"; // <--- USE THIS FOR YOUR BUTTON
 
-    // Existing Data
+  return {
+    // Legacy Variables (So your UI doesn't break)
+    uploading,
+    isAnalyzingProfile,
+    resumeName,
+    resumeText,
+
+    // New Variables
+    sessionStatus,
+    uploadError,
+    isReadyToAnalyze,
+
+    // Data
     skillAnalysis,
     skillStep,
     traceLogs,
@@ -228,9 +236,9 @@ export function useInterviewSession(
     result,
     currentStep,
 
-    // Actions
-    handleFileUpload, // Drag & Drop
-    startProfileAnalysis, // "Start" Button
+    // Functions
+    handleFileUpload,
+    startProfileAnalysis,
     handleAnswerSubmit,
     handleResetPractice,
   };
