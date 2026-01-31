@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 export function useInterviewSession(
@@ -9,138 +9,140 @@ export function useInterviewSession(
   setAnswer,
   serverStatus
 ) {
-  // --- STATE ---
+  // --- Upload State ---
   const [uploading, setUploading] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
-
   const [resumeName, setResumeName] = useState("");
   const [resumeText, setResumeText] = useState("");
-  const [uploadError, setUploadError] = useState(""); // <--- Defined here
 
-  // --- Analysis Data ---
+  // --- Skill Analysis State ---
   const [skillAnalysis, setSkillAnalysis] = useState(null);
+  const [isAnalyzingProfile, setIsAnalyzingProfile] = useState(false);
   const [skillStep, setSkillStep] = useState(0);
   const [traceLogs, setTraceLogs] = useState({});
 
-  // --- Answer Practice Data ---
-  const [loading, setLoading] = useState(false); // <--- Defined here
+  // --- Answer Analysis State ---
+  const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
 
   const apiSecret = process.env.REACT_APP_BACKEND_SECRET;
 
-  // ==================================================
-  // STEP 1: UPLOAD & VERIFY
-  // ==================================================
+  // 1. Skill Matching Stream
+  useEffect(() => {
+    if (serverStatus === "ready" && resumeText && targetRole) {
+      setIsAnalyzingProfile(true);
+      setSkillAnalysis(null);
+      setSkillStep(1);
+      setTraceLogs({ 1: "Initializing connection...\n" });
+
+      const fetchSkillStream = async () => {
+        try {
+          const response = await fetch(`${apiUrl}/api/skills/match_skills`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Poly-Secret": apiSecret,
+            },
+            body: JSON.stringify({
+              resume_text: resumeText,
+              target_role: targetRole,
+            }),
+          });
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop();
+
+            for (const line of lines) {
+              if (line.trim()) {
+                try {
+                  const msg = JSON.parse(line);
+                  if (msg.step) setSkillStep(msg.step);
+
+                  // Update Logs
+                  if (msg.message) {
+                    setTraceLogs((prev) => ({
+                      ...prev,
+                      [msg.step]:
+                        (prev[msg.step] || "") + "➜ " + msg.message + "\n",
+                    }));
+                  }
+
+                  // FIX 3: Capture Result and Stop Loading
+                  if (msg.type === "result") {
+                    setSkillStep(100);
+                    setSkillAnalysis(msg.data);
+
+                    // Force analysis to stop so results show
+                    setIsAnalyzingProfile(false);
+                  }
+                } catch (e) {
+                  console.error("Parse Error:", e);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Skill Stream Error:", err);
+          setIsAnalyzingProfile(false);
+        }
+      };
+      fetchSkillStream();
+    }
+  }, [resumeText, targetRole, serverStatus, apiUrl, apiSecret]);
+
+  // 2. Upload Handler
   const handleFileUpload = async (e) => {
-    const file = e.target.files ? e.target.files[0] : null;
+    const file = e.target.files[0];
     if (!file) return;
 
+    if (file.type !== "application/pdf") {
+      alert("❌ Invalid File: Please upload a PDF.");
+      return;
+    }
+
     setUploading(true);
-    setUploadError("");
-    setResumeName(file.name);
-
-    setIsVerified(false);
-    setIsAnalyzingProfile(false);
-    setSkillAnalysis(null);
-
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const response = await axios.post(
+      const res = await axios.post(
         `${apiUrl}/api/skills/upload_resume`,
         formData,
         {
           headers: { "X-Poly-Secret": apiSecret },
         }
       );
+      setResumeText(res.data.extracted_text);
+      setResumeName(res.data.filename);
+    } catch (err) {
+      if (err.response && err.response.status === 400) {
+        // This 'detail' comes from the backend: "Uploaded file does not appear to be a resume..."
+        const aiMessage = err.response.data.detail;
+        alert(`⚠️ Upload Rejected:\n\n${aiMessage}`);
 
-      setResumeText(response.data.safety_text || response.data.extracted_text);
-      setIsVerified(true);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      setIsVerified(false);
-      setResumeName("");
-
-      let msg = "Failed to upload resume.";
-      if (error.response?.data?.detail) {
-        msg = error.response.data.detail;
+        // Optional: Clear the input so they can try again
+        e.target.value = "";
       }
-      setUploadError(msg);
+      // 3. Handle Generic Server Errors (500)
+      else if (err.response && err.response.status === 413) {
+        alert("❌ File is too large (Max 5MB).");
+      } else {
+        alert("❌ Server Error: Could not verify resume. Please try again.");
+      }
     } finally {
       setUploading(false);
     }
   };
 
-  // ==================================================
-  // STEP 2: START ANALYSIS
-  // ==================================================
-  const startProfileAnalysis = async () => {
-    if (!resumeText || !targetRole) {
-      alert("Missing resume or target role.");
-      return;
-    }
-
-    setIsAnalyzingProfile(true);
-    setSkillStep(1);
-    setTraceLogs({ 1: "Initializing analysis stream...\n" });
-
-    try {
-      const response = await fetch(`${apiUrl}/api/skills/match_skills`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Poly-Secret": apiSecret,
-        },
-        body: JSON.stringify({
-          resume_text: resumeText,
-          target_role: targetRole,
-        }),
-      });
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop();
-
-        for (const line of lines) {
-          if (line.trim()) {
-            try {
-              const data = JSON.parse(line);
-              if (data.type === "log") {
-                setTraceLogs((prev) => ({
-                  ...prev,
-                  [data.step]: (prev[data.step] || "") + data.message + "\n",
-                }));
-                setSkillStep(data.step);
-              } else if (data.type === "result") {
-                setSkillAnalysis(data.data);
-                setIsAnalyzingProfile(false);
-              }
-            } catch (e) {
-              console.error(e);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Stream error:", error);
-      setIsAnalyzingProfile(false);
-      setUploadError("Analysis connection failed.");
-    }
-  };
-
-  // ==================================================
-  // STEP 3: ANSWER PRACTICE
-  // ==================================================
+  // 3. Answer Analysis Handler
   const handleAnalyzeStream = async (question, answer) => {
     if (!resumeText) return;
     setLoading(true);
@@ -155,6 +157,7 @@ export function useInterviewSession(
           "X-Poly-Secret": apiSecret,
         },
         body: JSON.stringify({
+          resume_text: resumeText,
           target_role: targetRole,
           question,
           student_answer: answer,
@@ -200,26 +203,18 @@ export function useInterviewSession(
   };
 
   return {
-    // UI Flags
     uploading,
-    isVerified,
-    isAnalyzingProfile,
-    uploadError, // ✅ FIXED: Now exported
-    loading, // ✅ FIXED: Now exported
-
-    // Data
+    loading,
     resumeName,
     setResumeName,
     setResumeText,
     skillAnalysis,
+    isAnalyzingProfile,
     skillStep,
     traceLogs,
     result,
     currentStep,
-
-    // Functions
     handleFileUpload,
-    startProfileAnalysis,
     handleAnalyzeStream,
     handleResetPractice,
   };
